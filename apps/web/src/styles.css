@@ -20,3 +20,18 @@
 .transform-grid label{display:grid;gap:4px;font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
 .transform-grid input{width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;font-size:11px;background:#fff;color:#0f172a}
 @media(max-width:840px){.toolbar-actions{width:100%;overflow-x:auto;flex-wrap:nowrap}.floor-select{min-width:120px}.transform-grid{grid-template-columns:repeat(2,1fr)}}
+
+.sync-history{margin-top:8px;border:1px solid #e2e8f0;border-radius:10px;background:#fff;overflow:hidden}
+.sync-history summary{cursor:pointer;padding:9px 10px;font-size:11px;font-weight:800;color:#334155}
+.sync-history-list{display:grid;gap:6px;padding:7px}
+.sync-history-row{padding:8px;border:1px solid #e2e8f0;border-radius:9px;background:#f8fafc}
+.sync-history-top{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.sync-history-top time{font-size:9px;color:#64748b}
+.sync-status{font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-weight:900}
+.sync-status.succeeded{color:#166534}
+.sync-status.failed{color:#9f1239}
+.sync-status.running{color:#1d4ed8}
+.sync-status.pending{color:#92400e}
+.sync-history-stats{display:flex;flex-wrap:wrap;gap:7px;margin-top:6px}
+.sync-history-stats span{font-size:9px;color:#64748b}
+.sync-history-stats b{color:#0f172a}

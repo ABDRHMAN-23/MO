@@ -18,8 +18,8 @@ import { parseCsv } from "./csv";
 type Locale="en"|"ar";
 
 const copy={
-  en:{integration:"Integrations",integrationName:"Connection name",odooUrl:"Odoo HTTPS URL",odooDatabase:"Odoo database",odooApiKey:"Odoo API key",connectOdoo:"Connect Odoo",noIntegrations:"No Odoo connections yet.",testConnection:"Test connection",syncNow:"Sync now",loadOdooLocations:"Load Odoo locations",map:"Map",chooseLocation:"Choose internal location",integrationCreated:"Odoo connection saved.",integrationHealthy:"Odoo connection is healthy.",syncComplete:"Odoo sync complete",mappingSaved:"Location mapping saved",lastSync:"Last sync",allFloors:"All floors",undo:"Undo",redo:"Redo",undone:"Change undone",redone:"Change redone",wall:"Wall",table:"Table",desk:"Desk",counter:"Counter",refrigerator:"Refrigerator",freezer:"Freezer",display_case:"Display case",storage_area:"Storage area",brand:"Spatial Inventory",tagline:"Search your physical space.",subtag:"Inventory truth stays in the data layer. 3D shows where it is.",online:"Connected",offline:"Offline",find:"Find an item",product:"Products",location:"Locations",source:"Inventory sources",create:"Create",space:"Space",floor:"Floor",zone:"Zone",room:"Room",aisle:"Aisle",rack:"Rack",shelf:"Shelf",cabinet:"Cabinet",drawer:"Drawer",bin:"Bin",box:"Box",slot:"Slot",map3d:"3D",plan2d:"2D plan",edit:"Edit layout",searchPlaceholder:"Product, SKU, barcode, shelf…",noResults:"No matching records.",unpositioned:"No coordinates yet",quantity:"Verified quantity",unknown:"Not currently verified",sourceVerified:"Verified from connected source",noLocation:"No physical placement yet.",breadcrumbs:"Exact place",addLocation:"Add location",addProduct:"Add product",place:"Place product",name:"Name",sku:"SKU",barcode:"Barcode",category:"Category",parent:"Parent location",createLocation:"Create location",createProduct:"Create product",placeProduct:"Place product",choose:"Choose…",importCsv:"Import CSV",sourceForQuantity:"Stock source for imported quantity (optional)",createSource:"Add source",sourceName:"Source name",sourceProvider:"Provider type",csvDone:"Import completed",scan:"Scan barcode",stop:"Stop scanner",camera:"Camera",positionSaved:"Position saved",selected:"Selected",children:"Children",noChildren:"No direct children.",noProducts:"No products in this location.",dataUnavailable:"The API/database is unavailable. Connect the backend and reload.",authRequired:"Production authentication is not configured yet.",errors:"Something went wrong",productCount:"Products",nodeCount:"Spatial objects",placementCount:"Placements",sourceCount:"Sources",language:"العربية",reason:"Movement reason"},
-  ar:{integration:"التكاملات",integrationName:"اسم الاتصال",odooUrl:"رابط Odoo عبر HTTPS",odooDatabase:"قاعدة Odoo",odooApiKey:"مفتاح API لـ Odoo",connectOdoo:"ربط Odoo",noIntegrations:"لا توجد اتصالات Odoo بعد.",testConnection:"اختبار الاتصال",syncNow:"مزامنة الآن",loadOdooLocations:"تحميل مواقع Odoo",map:"مطابقة",chooseLocation:"اختر الموقع الداخلي",integrationCreated:"تم حفظ اتصال Odoo.",integrationHealthy:"اتصال Odoo سليم.",syncComplete:"اكتملت مزامنة Odoo",mappingSaved:"تم حفظ مطابقة الموقع",lastSync:"آخر مزامنة",allFloors:"كل الطوابق",undo:"تراجع",redo:"إعادة",undone:"تم التراجع عن التغيير",redone:"تمت إعادة التغيير",wall:"جدار",table:"طاولة",desk:"مكتب",counter:"كاونتر",refrigerator:"ثلاجة",freezer:"فريزر",display_case:"واجهة عرض",storage_area:"منطقة تخزين",brand:"الذاكرة المكانية للمخزون",tagline:"ابحث في مكانك الحقيقي.",subtag:"حقيقة المخزون تبقى في طبقة البيانات، وواجهة 3D تريك أين يوجد.",online:"متصل",offline:"بدون اتصال",find:"ابحث عن صنف",product:"المنتجات",location:"المواقع",source:"مصادر المخزون",create:"إنشاء",space:"مساحة",floor:"طابق",zone:"منطقة",room:"غرفة",aisle:"ممر",rack:"رف تخزين",shelf:"رف",cabinet:"خزانة",drawer:"درج",bin:"حاوية",box:"صندوق",slot:"خانة",map3d:"3D",plan2d:"المخطط 2D",edit:"تعديل المخطط",searchPlaceholder:"اسم المنتج، SKU، الباركود، الرف…",noResults:"لا توجد نتائج مطابقة.",unpositioned:"لا توجد إحداثيات بعد",quantity:"الكمية الموثقة",unknown:"غير موثقة حاليًا",sourceVerified:"موثقة من مصدر مخزون متصل",noLocation:"لا يوجد موقع فعلي مرتبط بعد.",breadcrumbs:"المكان الدقيق",addLocation:"إضافة موقع",addProduct:"إضافة منتج",place:"ربط منتج بموقع",name:"الاسم",sku:"SKU",barcode:"الباركود",category:"الفئة",parent:"الموقع الأب",createLocation:"إنشاء الموقع",createProduct:"إنشاء المنتج",placeProduct:"ربط المنتج",choose:"اختر…",importCsv:"استيراد CSV",sourceForQuantity:"مصدر المخزون للكمية (اختياري)",createSource:"إضافة مصدر",sourceName:"اسم المصدر",sourceProvider:"نوع المصدر",csvDone:"اكتمل الاستيراد",scan:"مسح الباركود",stop:"إيقاف الماسح",camera:"الكاميرا",positionSaved:"تم حفظ الموقع",selected:"المحدد",children:"العناصر التابعة",noChildren:"لا توجد عناصر تابعة مباشرة.",noProducts:"لا توجد منتجات في هذا الموقع.",dataUnavailable:"قاعدة البيانات أو API غير متاحين. شغّل الخلفية ثم أعد التحميل.",authRequired:"مصادقة الإنتاج لم تُضبط بعد.",errors:"حدث خطأ",productCount:"المنتجات",nodeCount:"العناصر المكانية",placementCount:"الربط المكاني",sourceCount:"المصادر",language:"English",reason:"سبب الحركة"}
+  en:{integration:"Integrations",integrationName:"Connection name",odooUrl:"Odoo HTTPS URL",odooDatabase:"Odoo database",odooApiKey:"Odoo API key",connectOdoo:"Connect Odoo",noIntegrations:"No Odoo connections yet.",testConnection:"Test connection",syncNow:"Sync now",loadOdooLocations:"Load Odoo locations",map:"Map",chooseLocation:"Choose internal location",integrationCreated:"Odoo connection saved.",integrationHealthy:"Odoo connection is healthy.",syncComplete:"Odoo sync complete",mappingSaved:"Location mapping saved",lastSync:"Last sync",syncHistory:"Sync history",noSyncRuns:"No sync runs yet.",syncStarted:"Started",syncFinished:"Finished",syncProducts:"Products",syncStock:"Stock rows",allFloors:"All floors",undo:"Undo",redo:"Redo",undone:"Change undone",redone:"Change redone",wall:"Wall",table:"Table",desk:"Desk",counter:"Counter",refrigerator:"Refrigerator",freezer:"Freezer",display_case:"Display case",storage_area:"Storage area",brand:"Spatial Inventory",tagline:"Search your physical space.",subtag:"Inventory truth stays in the data layer. 3D shows where it is.",online:"Connected",offline:"Offline",find:"Find an item",product:"Products",location:"Locations",source:"Inventory sources",create:"Create",space:"Space",floor:"Floor",zone:"Zone",room:"Room",aisle:"Aisle",rack:"Rack",shelf:"Shelf",cabinet:"Cabinet",drawer:"Drawer",bin:"Bin",box:"Box",slot:"Slot",map3d:"3D",plan2d:"2D plan",edit:"Edit layout",searchPlaceholder:"Product, SKU, barcode, shelf…",noResults:"No matching records.",unpositioned:"No coordinates yet",quantity:"Verified quantity",unknown:"Not currently verified",sourceVerified:"Verified from connected source",noLocation:"No physical placement yet.",breadcrumbs:"Exact place",addLocation:"Add location",addProduct:"Add product",place:"Place product",name:"Name",sku:"SKU",barcode:"Barcode",category:"Category",parent:"Parent location",createLocation:"Create location",createProduct:"Create product",placeProduct:"Place product",choose:"Choose…",importCsv:"Import CSV",sourceForQuantity:"Stock source for imported quantity (optional)",createSource:"Add source",sourceName:"Source name",sourceProvider:"Provider type",csvDone:"Import completed",scan:"Scan barcode",stop:"Stop scanner",camera:"Camera",positionSaved:"Position saved",selected:"Selected",children:"Children",noChildren:"No direct children.",noProducts:"No products in this location.",dataUnavailable:"The API/database is unavailable. Connect the backend and reload.",authRequired:"Production authentication is not configured yet.",errors:"Something went wrong",productCount:"Products",nodeCount:"Spatial objects",placementCount:"Placements",sourceCount:"Sources",language:"العربية",reason:"Movement reason"},
+  ar:{integration:"التكاملات",integrationName:"اسم الاتصال",odooUrl:"رابط Odoo عبر HTTPS",odooDatabase:"قاعدة Odoo",odooApiKey:"مفتاح API لـ Odoo",connectOdoo:"ربط Odoo",noIntegrations:"لا توجد اتصالات Odoo بعد.",testConnection:"اختبار الاتصال",syncNow:"مزامنة الآن",loadOdooLocations:"تحميل مواقع Odoo",map:"مطابقة",chooseLocation:"اختر الموقع الداخلي",integrationCreated:"تم حفظ اتصال Odoo.",integrationHealthy:"اتصال Odoo سليم.",syncComplete:"اكتملت مزامنة Odoo",mappingSaved:"تم حفظ مطابقة الموقع",lastSync:"آخر مزامنة",syncHistory:"سجل المزامنة",noSyncRuns:"لا توجد عمليات مزامنة بعد.",syncStarted:"بدأ",syncFinished:"انتهى",syncProducts:"المنتجات",syncStock:"صفوف المخزون",allFloors:"كل الطوابق",undo:"تراجع",redo:"إعادة",undone:"تم التراجع عن التغيير",redone:"تمت إعادة التغيير",wall:"جدار",table:"طاولة",desk:"مكتب",counter:"كاونتر",refrigerator:"ثلاجة",freezer:"فريزر",display_case:"واجهة عرض",storage_area:"منطقة تخزين",brand:"الذاكرة المكانية للمخزون",tagline:"ابحث في مكانك الحقيقي.",subtag:"حقيقة المخزون تبقى في طبقة البيانات، وواجهة 3D تريك أين يوجد.",online:"متصل",offline:"بدون اتصال",find:"ابحث عن صنف",product:"المنتجات",location:"المواقع",source:"مصادر المخزون",create:"إنشاء",space:"مساحة",floor:"طابق",zone:"منطقة",room:"غرفة",aisle:"ممر",rack:"رف تخزين",shelf:"رف",cabinet:"خزانة",drawer:"درج",bin:"حاوية",box:"صندوق",slot:"خانة",map3d:"3D",plan2d:"المخطط 2D",edit:"تعديل المخطط",searchPlaceholder:"اسم المنتج، SKU، الباركود، الرف…",noResults:"لا توجد نتائج مطابقة.",unpositioned:"لا توجد إحداثيات بعد",quantity:"الكمية الموثقة",unknown:"غير موثقة حاليًا",sourceVerified:"موثقة من مصدر مخزون متصل",noLocation:"لا يوجد موقع فعلي مرتبط بعد.",breadcrumbs:"المكان الدقيق",addLocation:"إضافة موقع",addProduct:"إضافة منتج",place:"ربط منتج بموقع",name:"الاسم",sku:"SKU",barcode:"الباركود",category:"الفئة",parent:"الموقع الأب",createLocation:"إنشاء الموقع",createProduct:"إنشاء المنتج",placeProduct:"ربط المنتج",choose:"اختر…",importCsv:"استيراد CSV",sourceForQuantity:"مصدر المخزون للكمية (اختياري)",createSource:"إضافة مصدر",sourceName:"اسم المصدر",sourceProvider:"نوع المصدر",csvDone:"اكتمل الاستيراد",scan:"مسح الباركود",stop:"إيقاف الماسح",camera:"الكاميرا",positionSaved:"تم حفظ الموقع",selected:"المحدد",children:"العناصر التابعة",noChildren:"لا توجد عناصر تابعة مباشرة.",noProducts:"لا توجد منتجات في هذا الموقع.",dataUnavailable:"قاعدة البيانات أو API غير متاحين. شغّل الخلفية ثم أعد التحميل.",authRequired:"مصادقة الإنتاج لم تُضبط بعد.",errors:"حدث خطأ",productCount:"المنتجات",nodeCount:"العناصر المكانية",placementCount:"الربط المكاني",sourceCount:"المصادر",language:"English",reason:"سبب الحركة"}
 } as const;
 
 const nodeLabel=(locale:Locale,type:SpatialNode["type"])=>copy[locale][type];
@@ -98,6 +98,7 @@ function IntegrationPanel({
   const [targets, setTargets] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [runs, setRuns] = useState<Awaited<ReturnType<typeof api.integrationSyncRuns>>>([]);
 
   useEffect(() => {
     if (!selectedId && integrations[0]) setSelectedId(integrations[0].id);
@@ -105,6 +106,13 @@ function IntegrationPanel({
       setSelectedId(integrations[0]?.id ?? null);
     }
   }, [integrations, selectedId]);
+  useEffect(() => {
+    if (!selectedId) {
+      setRuns([]);
+      return;
+    }
+    void api.integrationSyncRuns(selectedId).then(setRuns).catch(() => setRuns([]));
+  }, [selectedId]);
 
   const selected = integrations.find((item) => item.id === selectedId) ?? null;
 
@@ -150,6 +158,8 @@ function IntegrationPanel({
     setMessage("");
     try {
       const result = await api.syncOdoo(selected.id);
+      const latest = await api.integrationSyncRuns(selected.id).catch(() => []);
+      setRuns(latest);
       await onRefresh();
       setMessage(`${t("syncComplete")}: ${result.products} / ${result.stockRows}`);
     } catch (error) {
@@ -224,6 +234,27 @@ function IntegrationPanel({
         <button className="primary" type="button" disabled={busy !== null} onClick={() => void sync()}>{busy === "sync" ? "…" : t("syncNow")}</button>
         <button className="secondary" type="button" disabled={busy !== null} onClick={() => void loadLocations()}>{busy === "locations" ? "…" : t("loadOdooLocations")}</button>
       </div>
+
+      <details className="sync-history">
+        <summary>{t("syncHistory")} ({runs.length})</summary>
+        {runs.length === 0
+          ? <div className="empty">{t("noSyncRuns")}</div>
+          : <div className="sync-history-list">
+              {runs.slice(0,10).map((run) => <div className="sync-history-row" key={run.id}>
+                <div className="sync-history-top">
+                  <span className={"sync-status " + run.status}>{run.status}</span>
+                  <time dateTime={run.started_at}>{new Date(run.started_at).toLocaleString()}</time>
+                </div>
+                <div className="sync-history-stats">
+                  <span>{t("syncProducts")} <b>{run.products_seen}</b></span>
+                  <span>{t("syncStock")} <b>{run.stock_rows}</b></span>
+                  <span>{t("syncStarted")} <b>{new Date(run.started_at).toLocaleTimeString()}</b></span>
+                  {run.finished_at && <span>{t("syncFinished")} <b>{new Date(run.finished_at).toLocaleTimeString()}</b></span>}
+                </div>
+                {run.error_message && <div className="integration-error">{run.error_message}</div>}
+              </div>)}
+            </div>}
+      </details>
 
       {locations.length > 0 && <div className="mapping-list">
         {locations.map((location) => <div className="mapping-row" key={location.id}>
