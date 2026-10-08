@@ -72,7 +72,7 @@ export function isPositioned(node: SpatialNode): node is SpatialNode & { x: numb
   return node.x !== null && node.y !== null && node.z !== null;
 }
 export function breadcrumb(nodes: SpatialNode[], id: string): SpatialNode[] {
-  const byId = new Map(nodes.map((node) => [node.id, node]));
+  const byId = new Map<string, SpatialNode>(nodes.map((node) => [node.id as string, node]));
   const result: SpatialNode[] = [];
   const visited = new Set<string>();
   let current = byId.get(id);
