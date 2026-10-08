@@ -488,38 +488,6 @@ async function createSyncRun(tenantId:TenantId,connectionId:string,sourceId:stri
   });
 }
 
-async function finishSyncRun(tenantId:TenantId,runId:string,patch:{
-  status:"succeeded"|"failed";
-  productsSeen?:number;
-  productsCreated?:number;
-  productsUpdated?:number;
-  locationsSeen?:number;
-  locationsUpserted?:number;
-  stockRows?:number;
-  stockSkipped?:number;
-  errorCode?:string|null;
-  errorMessage?:string|null;
-}) {
-  return withTenant(tenantId,async(db)=>{
-    await db.query({
-      text:"update integration_sync_runs set status=$1,finished_at=now(),products_seen=$2,products_created=$3,products_updated=$4,locations_seen=$5,locations_upserted=$6,stock_rows=$7,stock_skipped=$8,error_code=$9,error_message=$10,updated_at=now() where id=$11",
-      values:[
-        patch.status,
-        patch.productsSeen ?? 0,
-        patch.productsCreated ?? 0,
-        patch.productsUpdated ?? 0,
-        patch.locationsSeen ?? 0,
-        patch.locationsUpserted ?? 0,
-        patch.stockRows ?? 0,
-        patch.stockSkipped ?? 0,
-        patch.errorCode ?? null,
-        patch.errorMessage?.slice(0,1000) ?? null,
-        runId
-      ]
-    });
-  });
-}
-
 async function listSyncRuns(tenantId:TenantId,connectionId:string) {
   assertUuid(connectionId,"connectionId");
   return withTenant(tenantId,async(db)=>{
@@ -535,18 +503,18 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
   const connection=await getOdooConnection(tenantId,connectionId);
   const sourceId=connection.source_id as string;
   const run=await createSyncRun(tenantId,connectionId,sourceId);
-  const connector=new OdooConnector({
-    baseUrl:connection.base_url,
-    database:connection.provider_database ?? undefined,
-    apiKey:decryptSecret(connection.encrypted_secret)
-  });
-
-  await withTenant(tenantId,async(db)=>{
-    await db.query({text:"update inventory_sources set status='syncing',updated_at=now() where id=$1",values:[sourceId]});
-    await db.query({text:"update integration_connections set last_error=null,updated_at=now() where id=$1",values:[connectionId]});
-  });
 
   try {
+    const connector=new OdooConnector({
+      baseUrl:connection.base_url,
+      database:connection.provider_database ?? undefined,
+      apiKey:decryptSecret(connection.encrypted_secret)
+    });
+
+    await withTenant(tenantId,async(db)=>{
+      await db.query({text:"update inventory_sources set status='syncing',updated_at=now() where id=$1",values:[sourceId]});
+      await db.query({text:"update integration_connections set last_error=null,updated_at=now() where id=$1",values:[connectionId]});
+    });
     const products=await connector.listProducts({tenantId,sourceId});
     const locations=await connector.listLocations({tenantId,sourceId});
     const stock=await connector.listStock({tenantId,sourceId});
