@@ -14,7 +14,7 @@ select trim(
       'أإآٱىيكکةؤئـًٌٍَُِّْٰ',
       'اااايييككهوي'
     ),
-    '[^[:alnum:]\u0600-\u06FF]+',
+    '[[:space:]]+',
     ' ',
     'g'
   )
@@ -28,14 +28,12 @@ alter table products
   add column if not exists search_text_normalized text not null default '';
 
 update spatial_nodes
-set search_text_normalized=app.normalize_search_text(coalesce(name,'') || ' ' || coalesce(code,''))
-where search_text_normalized='';
+set search_text_normalized=app.normalize_search_text(coalesce(name,'') || ' ' || coalesce(code,''));
 
 update products
 set search_text_normalized=app.normalize_search_text(
   coalesce(name,'') || ' ' || coalesce(sku,'') || ' ' || coalesce(barcode,'') || ' ' || coalesce(category,'')
-)
-where search_text_normalized='';
+);
 
 create index if not exists spatial_nodes_tenant_search_idx
   on spatial_nodes(tenant_id,search_text_normalized)
