@@ -14,6 +14,7 @@ import {
 } from "./api";
 import { BarcodeScanner } from "./barcode";
 import { parseCsv } from "./csv";
+import { enqueuePendingMove, flushPendingMoves, listPendingMoves } from "./offline-queue";
 
 type Locale="en"|"ar";
 
@@ -277,7 +278,7 @@ function IntegrationPanel({
 
 export function App(){
   const [locale,setLocale]=useState<Locale>("en"),t=(key:keyof typeof copy.en)=>copy[locale][key];
-  const [online,setOnline]=useState(navigator.onLine),[nodes,setNodes]=useState<SpatialNode[]>([]),[products,setProducts]=useState<Product[]>([]),[sources,setSources]=useState<InventorySourceSummary[]>([]),[integrations,setIntegrations]=useState<IntegrationSummary[]>([]),[overview,setOverview]=useState<Overview|null>(null);
+  const [online,setOnline]=useState(navigator.onLine),[nodes,setNodes]=useState<SpatialNode[]>([]),[products,setProducts]=useState<Product[]>([]),[sources,setSources]=useState<InventorySourceSummary[]>([]),[integrations,setIntegrations]=useState<IntegrationSummary[]>([]),[overview,setOverview]=useState<Overview|null>(null),[pendingMoveCount,setPendingMoveCount]=useState(()=>listPendingMoves().length),[moveTargetId,setMoveTargetId]=useState("");
   const [selectedFloorId,setSelectedFloorId]=useState<string|null>(null);
   const [history,setHistory]=useState<Array<{id:string;before:Partial<SpatialNode>;after:Partial<SpatialNode>}>>([]);
   const [historyIndex,setHistoryIndex]=useState(-1);
@@ -306,6 +307,20 @@ export function App(){
   };
 
   useEffect(()=>{const handle=window.setTimeout(()=>void load(query.trim()),250);return()=>window.clearTimeout(handle);},[query]);
+  const flushOfflineQueue=async()=>{
+    const result=await flushPendingMoves(async(item)=>{
+      await api.movePlacement(item.placementId,{
+        spatialNodeId:item.spatialNodeId,
+        expectedUpdatedAt:item.expectedUpdatedAt,
+        ...(item.reason?{reason:item.reason}:{})
+      });
+    });
+    setPendingMoveCount(listPendingMoves().length);
+    if(result.conflicts>0)setError(t("offlineConflict"));
+    else if(result.completed>0){setNotice(t("offlineSynced"));void load(query);}
+  };
+  useEffect(()=>{if(online)void flushOfflineQueue();},[online]);
+
 
   useEffect(()=>{if(!selectedProductId){setLocations([]);return;}void api.productLocations(selectedProductId).then(setLocations).catch(()=>setLocations([]));},[selectedProductId]);
   useEffect(()=>{if(!selectedNodeId){setNodeProducts([]);return;}void api.spatialProducts(selectedNodeId).then(setNodeProducts).catch(()=>setNodeProducts([]));},[selectedNodeId]);
@@ -320,7 +335,12 @@ export function App(){
   const unpositioned=visibleNodes.filter((n)=>!isPositioned(n)),children=selectedNode?nodes.filter((n)=>n.parentId===selectedNode.id):[],currentQuantity=selectedLocation?latestVerifiedQuantity(selectedLocation.inventory):null;
   const sortedProducts=useMemo(()=>products.slice(0,60),[products]);
 
-  const selectProduct=async(product:Product)=>{setSelectedProductId(product.id);setSelectedNodeId(null);setNotice("");const result=await api.productLocations(product.id).catch(()=>[]);setLocations(result);if(result[0])setSelectedNodeId(result[0].placement.spatialNodeId);};
+  const selectProduct=async(product:Product)=>{
+    setSelectedProductId(product.id);setSelectedNodeId(null);setMoveTargetId("");setNotice("");
+    const result=await api.productLocations(product.id).catch(()=>[]);
+    setLocations(result);
+    if(result[0]){setSelectedNodeId(result[0].placement.spatialNodeId);setMoveTargetId(result[0].placement.spatialNodeId);}
+  };
   const selectNode=async(id:string)=>{setSelectedNodeId(id);setSelectedProductId(null);setNotice("");const result=await api.spatialProducts(id).catch(()=>[]);setNodeProducts(result);};
   const applyNodePatch=async(id:string,patch:Record<string,unknown>,recordHistory=true)=>{
     if(!online){setError(t("offline"));return null;}
@@ -375,9 +395,38 @@ export function App(){
   const addPlacement=async(event:React.FormEvent)=>{event.preventDefault();const product=products.find((p)=>p.id===placementForm.productId);if(!product){setError(t("errors"));return;}try{await api.createPlacement(placementForm);await selectProduct(product);setNotice(t("create"));}catch{setError(t("errors"));}};
   const addSource=async(event:React.FormEvent)=>{event.preventDefault();try{const created=await api.createSource({providerType:sourceForm.providerType,name:sourceForm.name,locationRef:sourceForm.locationRef||undefined});setSources((current)=>[...current,created]);setSourceForm({name:"",providerType:"csv",locationRef:""});setNotice(t("createSource"));}catch{setError(t("errors"));}};
   const importCsvFile=async(file:File,sourceId?:string)=>{try{const text=await file.text();const rows=parseCsv(text).map((row)=>{const next:Record<string,unknown>={...row};if(row.Quantity?.trim())next.quantity=Number(row.Quantity);if(row["Location Code"]?.trim())next.locationCode=row["Location Code"];if(row["Product Name"]?.trim())next.name=row["Product Name"];if(row.SKU?.trim())next.sku=row.SKU;return next;});if(!sourceId&&rows.some((row)=>row.quantity!==undefined))throw new Error("Stock source required for quantity");const result=await api.importProducts({rows,sourceId});setNotice(`${t("csvDone")}: ${result.rows} · ${result.created} ${t("create")}`);await load(query);}catch{setError(t("errors"));}};
+  const moveSelectedProduct=async()=>{
+    if(!selectedProduct||!selectedLocation||!moveTargetId||moveTargetId===selectedLocation.placement.spatialNodeId)return;
+    const payload={
+      placementId:selectedLocation.placement.id,
+      productId:selectedProduct.id,
+      spatialNodeId:moveTargetId,
+      expectedUpdatedAt:selectedLocation.placement.updatedAt,
+      ...(placementForm.reason?{reason:placementForm.reason}:{})
+    };
+    if(!online){
+      enqueuePendingMove(payload);
+      setPendingMoveCount(listPendingMoves().length);
+      setNotice(t("moveQueued"));
+      return;
+    }
+    try{
+      const updated=await api.movePlacement(payload.placementId,{
+        spatialNodeId:payload.spatialNodeId,
+        expectedUpdatedAt:payload.expectedUpdatedAt,
+        ...(payload.reason?{reason:payload.reason}:{})
+      });
+      await selectProduct(selectedProduct);
+      setSelectedNodeId(updated.spatialNodeId);
+      setMoveTargetId(updated.spatialNodeId);
+      setNotice(t("positionSaved"));
+    }catch(error){
+      setError(error instanceof ApiClientError&&error.status===409?t("offlineConflict"):t("errors"));
+    }
+  };
 
   return <div className={`app-shell ${locale==="ar"?"rtl":""}`} dir={locale==="ar"?"rtl":"ltr"}>
-    <header className="topbar"><div><div className="brand">{t("brand")}</div><h1>{t("tagline")}</h1><p>{t("subtag")}</p></div><div className="top-actions"><span className={online?"connection ok":"connection"}>{online?t("online"):t("offline")}</span><button className="secondary" onClick={()=>setLocale(locale==="en"?"ar":"en")}>{t("language")}</button></div></header>
+    <header className="topbar"><div><div className="brand">{t("brand")}</div><h1>{t("tagline")}</h1><p>{t("subtag")}</p></div><div className="top-actions"><span className={online?"connection ok":"connection"}>{online?t("online"):t("offline")}</span>{pendingMoveCount>0&&<span className="pending-badge">{t("pendingSync")}{pendingMoveCount}</span>}<button className="secondary" onClick={()=>setLocale(locale==="en"?"ar":"en")}>{t("language")}</button></div></header>
     <section className="overview-row"><div className="hero-search"><label htmlFor="search">{t("find")}</label><input id="search" value={query} onChange={(e)=>setQuery(e.target.value)} placeholder={t("searchPlaceholder")}/><button className="secondary scan-btn" onClick={()=>setShowScanner(true)}>{t("scan")}</button></div><div className="stats"><div><strong>{overview?.products??"—"}</strong><span>{t("productCount")}</span></div><div><strong>{overview?.spatial_nodes??"—"}</strong><span>{t("nodeCount")}</span></div><div><strong>{overview?.placements??"—"}</strong><span>{t("placementCount")}</span></div><div><strong>{overview?.inventory_sources??"—"}</strong><span>{t("sourceCount")}</span></div></div></section>
     {error&&<div className="banner danger">{error}<button onClick={()=>{setError("");void load(query)}}>×</button></div>}
     {notice&&<div className="banner">{notice}<button onClick={()=>setNotice("")}>×</button></div>}
@@ -406,7 +455,7 @@ export function App(){
           </div>
         </div><div className="visual">{view==="3d"?<Scene nodes={visibleNodes} selectedId={selectedNodeId} onSelect={(id)=>void selectNode(id)}/>:<Plan2D nodes={visibleNodes} selectedId={selectedNodeId} edit={edit} onSelect={(id)=>void selectNode(id)} onMoved={moveNode}/>} {unpositioned.length>0&&<div className="unpositioned">{t("unpositioned")}: {unpositioned.length}</div>}</div></section>
       <aside className="details">
-        {selectedProduct&&<div className="detail-card"><div className="section-head"><span>{t("selected")}</span><span className="pill">{selectedProduct.status}</span></div><h2>{selectedProduct.name}</h2><p>{selectedProduct.sku}{selectedProduct.barcode? ` · ${selectedProduct.barcode}`:""}</p>{selectedLocation?<><div className="trust"><span>{t("quantity")}</span><strong>{currentQuantity??t("unknown")}</strong>{currentQuantity!==null&&<small>{t("sourceVerified")}</small>}</div><div className="section-head"><span>{t("breadcrumbs")}</span></div><div className="crumbs">{selectedLocation.breadcrumb.map((node)=><span key={node.id}>{node.code??node.name}</span>)}</div></>:<div className="empty">{t("noLocation")}</div>}</div>}
+        {selectedProduct&&<div className="detail-card"><div className="section-head"><span>{t("selected")}</span><span className="pill">{selectedProduct.status}</span></div><h2>{selectedProduct.name}</h2><p>{selectedProduct.sku}{selectedProduct.barcode? ` · ${selectedProduct.barcode}`:""}</p>{selectedLocation?<><div className="trust"><span>{t("quantity")}</span><strong>{currentQuantity??t("unknown")}</strong>{currentQuantity!==null&&<small>{t("sourceVerified")}</small>}</div><div className="section-head"><span>{t("breadcrumbs")}</span></div><div className="crumbs">{selectedLocation.breadcrumb.map((node)=><span key={node.id}>{node.code??node.name}</span>)}</div><div className="move-product"><label>{t("moveDestination")}<select value={moveTargetId} onChange={(e)=>setMoveTargetId(e.target.value)}><option value="">{t("choose")}</option>{nodes.map((node)=><option key={node.id} value={node.id}>{node.code??node.name}</option>)}</select></label><button className="primary" disabled={!moveTargetId||moveTargetId===selectedLocation.placement.spatialNodeId} onClick={()=>void moveSelectedProduct()}>{t("moveProduct")}</button></div></>:<div className="empty">{t("noLocation")}</div>}</div>}
         {selectedNode&&<div className="detail-card"><div className="section-head"><span>{t("selected")}</span><span className="pill">{nodeLabel(locale,selectedNode.type)}</span></div><h2>{selectedNode.code??selectedNode.name}</h2><p>{selectedNode.name}</p><div className="detail-grid"><span>X <b>{selectedNode.x??"—"}</b></span><span>Y <b>{selectedNode.y??"—"}</b></span><span>Z <b>{selectedNode.z??"—"}</b></span></div>
           <div className="transform-grid">
             {(["width","height","depth"] as const).map((key)=><label key={key}>{key}<input type="number" min="0.01" step="0.1" defaultValue={String(selectedNode[key])} onBlur={(e)=>void updateSelectedNode(key,e.target.value)}/></label>)}
