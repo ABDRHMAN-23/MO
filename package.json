@@ -8,7 +8,7 @@
     "dev:api": "pnpm --filter @spatial/api dev",
     "build": "pnpm --workspace-concurrency=1 -r build",
     "typecheck": "pnpm --workspace-concurrency=1 -r typecheck",
-    "test": "pnpm --filter @spatial/domain test && pnpm --filter @spatial/integrations test",
+    "test": "pnpm --filter @spatial/domain test && pnpm --filter @spatial/integrations test && pnpm --filter @spatial/api test",
     "lint": "pnpm --workspace-concurrency=1 -r lint"
   }
 }
