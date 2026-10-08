@@ -16,7 +16,8 @@ grant execute on function app.set_tenant_context(uuid) to spatial_runtime_test;
 grant select, insert, update, delete on
   tenants, users, spatial_nodes, products, placements, audit_events,
   inventory_sources, inventory_location_mappings, inventory_balances,
-  inventory_events, placement_history
+  inventory_events, placement_history, integration_connections,
+  integration_locations, integration_product_mappings
   to spatial_runtime_test;
 grant usage, select on all sequences in schema public to spatial_runtime_test;
 
@@ -41,6 +42,11 @@ values (app.current_tenant_id(),'space','A Space','A',0,0,0);
 insert into products (tenant_id,sku,name)
 values (app.current_tenant_id(),'A-001','Tenant A Product');
 
+insert into integration_connections
+  (tenant_id,provider_type,name,base_url,encrypted_secret)
+values
+  (app.current_tenant_id(),'odoo','A Odoo','https://odoo.example.test','test-ciphertext');
+
 do $assert$
 begin
   if exists (select 1 from tenants where id='22222222-2222-4222-8222-222222222222') then
@@ -61,6 +67,16 @@ begin
   exception when insufficient_privilege then
     null;
   end;
+
+  begin
+    insert into integration_connections
+      (tenant_id,provider_type,name,base_url,encrypted_secret)
+    values
+      ('22222222-2222-4222-8222-222222222222','odoo','B Odoo','https://odoo.example.test','test');
+    raise exception 'cross-tenant integration insert unexpectedly succeeded';
+  exception when insufficient_privilege then
+    null;
+  end;
 end
 $cross_insert$;
 
@@ -69,13 +85,29 @@ commit;
 begin;
 select app.set_tenant_context('22222222-2222-4222-8222-222222222222');
 
+do $tenant_b_visibility$
+begin
+  if exists (select 1 from integration_connections where name='A Odoo') then
+    raise exception 'tenant B can read tenant A integration';
+  end if;
+end
+$tenant_b_visibility$;
+
 insert into products (tenant_id,sku,name)
 values (app.current_tenant_id(),'B-001','Tenant B Product');
+
+insert into integration_connections
+  (tenant_id,provider_type,name,base_url,encrypted_secret)
+values
+  (app.current_tenant_id(),'odoo','B Odoo','https://odoo.example.test','test-ciphertext');
 
 do $tenant_b$
 begin
   if not exists (select 1 from products where sku='B-001') then
     raise exception 'tenant B runtime session cannot see its own product';
+  end if;
+  if not exists (select 1 from integration_connections where name='B Odoo') then
+    raise exception 'tenant B runtime session cannot see its own integration';
   end if;
 end
 $tenant_b$;
