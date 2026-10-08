@@ -48,6 +48,7 @@ export interface Placement {
   spatialNodeId: SpatialNodeId;
   status: PlacementStatus;
   verifiedAt: string | null;
+  updatedAt: string;
 }
 export interface InventoryTruth {
   sourceId: string;
