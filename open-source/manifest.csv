@@ -13,8 +13,6 @@ vitest,https://github.com/vitest-dev/vitest,5.0.3,MIT-verified,test tool,domain 
 tsx,https://github.com/privatenumber/tsx,4.23.15,MIT-verified,dev tool,API dev runner
 openPlan3D,https://github.com/laanlabs/openPlan3D,review-before-adoption,review-required,reference,3D planning patterns
 blueprint3d-modern,https://github.com/charmlinn/blueprint3d-modern,review-before-adoption,review-required,reference,2D/3D planning patterns
-react-three-fiber,https://github.com/pmndrs/react-three-fiber,9.8.1,MIT-verified,primary stack,already selected direct dependency
-drei,https://github.com/pmndrs/drei,10.7.9,MIT-verified,primary stack,already selected direct dependency
 3d-warehouse,https://github.com/astopaal/3d-warehouse,review-before-adoption,review-required,reference,warehouse scene patterns
 WarehouseDigitalTwin,https://github.com/Alibadloo/WarehouseDigitalTwin,review-before-adoption,review-required,reference,digital twin patterns
 waretwin,https://github.com/ltinphan/waretwin,review-before-adoption,review-required,reference,warehouse twin patterns
