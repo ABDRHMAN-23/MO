@@ -1,14 +1,14 @@
 {
-  "name": "spatial-inventory-platform",
-  "private": true,
-  "version": "0.2.0",
-  "packageManager": "pnpm@12.10.0",
-  "scripts": {
-    "dev": "pnpm --filter @spatial/web dev",
-    "dev:api": "pnpm --filter @spatial/api dev",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter @spatial/domain test",
-    "lint": "pnpm -r lint"
+  "name":"spatial-inventory-platform",
+  "private":true,
+  "version":"0.2.0",
+  "packageManager":"pnpm@12.10.0",
+  "scripts":{
+    "dev":"pnpm --filter @spatial/web dev",
+    "dev:api":"pnpm --filter @spatial/api dev",
+    "build":"pnpm --workspace-concurrency=1 -r build",
+    "typecheck":"pnpm --workspace-concurrency=1 -r typecheck",
+    "test":"pnpm --filter @spatial/domain test",
+    "lint":"pnpm --workspace-concurrency=1 -r lint"
   }
 }

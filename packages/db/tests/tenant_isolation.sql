@@ -1,13 +1,13 @@
 \set ON_ERROR_STOP on
 
--- This file is an integration test, not a production migration.
--- It creates a disposable runtime role to prove tenant isolation under FORCE RLS.
-do $$
+-- Disposable integration test. It runs as a non-superuser runtime role.
+do $bootstrap$
 begin
   if not exists (select 1 from pg_roles where rolname = 'spatial_runtime_test') then
     create role spatial_runtime_test nologin;
   end if;
-end $$;
+end
+$bootstrap$;
 
 alter role spatial_runtime_test nosuperuser nobypassrls;
 grant usage on schema public, app to spatial_runtime_test;
@@ -20,7 +20,6 @@ grant select, insert, update, delete on
   to spatial_runtime_test;
 grant usage, select on all sequences in schema public to spatial_runtime_test;
 
--- Seed two tenants as the migration/test owner before switching to the runtime role.
 insert into tenants (id,name,slug)
 values
   ('11111111-1111-4111-8111-111111111111','Tenant A','tenant-a'),
@@ -42,8 +41,7 @@ values (app.current_tenant_id(),'space','A Space','A',0,0,0);
 insert into products (tenant_id,sku,name)
 values (app.current_tenant_id(),'A-001','Tenant A Product');
 
--- A runtime session must never see B.
-do $
+do $assert$
 begin
   if exists (select 1 from tenants where id='22222222-2222-4222-8222-222222222222') then
     raise exception 'tenant isolation failure: tenant A can read tenant B';
@@ -51,10 +49,10 @@ begin
   if exists (select 1 from products where sku='B-001') then
     raise exception 'tenant isolation failure: tenant A can read tenant B product';
   end if;
-end $;
+end
+$assert$;
 
--- Explicitly crossing the tenant boundary must fail policy checks.
-do $$
+do $cross_insert$
 begin
   begin
     insert into products (tenant_id,sku,name)
@@ -63,7 +61,8 @@ begin
   exception when insufficient_privilege then
     null;
   end;
-end $$;
+end
+$cross_insert$;
 
 commit;
 
@@ -73,15 +72,19 @@ select app.set_tenant_context('22222222-2222-4222-8222-222222222222');
 insert into products (tenant_id,sku,name)
 values (app.current_tenant_id(),'B-001','Tenant B Product');
 
-select count(*)::int = 1 as tenant_b_only
-from products
-where sku='B-001';
+do $tenant_b$
+begin
+  if not exists (select 1 from products where sku='B-001') then
+    raise exception 'tenant B runtime session cannot see its own product';
+  end if;
+end
+$tenant_b$;
 
 commit;
 reset role;
 
--- Keep the test database reusable.
 delete from tenants
 where id in ('11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222');
+
 drop owned by spatial_runtime_test;
 drop role spatial_runtime_test;
