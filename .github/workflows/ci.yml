@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: spatial-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   web-and-domain:
     runs-on: ubuntu-latest
