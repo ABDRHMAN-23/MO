@@ -258,7 +258,7 @@ async function productLocations(tenantId:TenantId,productId:string) {
       join spatial_nodes s on s.id=p.spatial_node_id
       left join lateral (
         select jsonb_agg(jsonb_build_object(
-          'sourceId',ib.source_id,'sourceName',ins.name,'status',ins.status,'quantity',ib.quantity,
+          'sourceId',ib.source_id,'sourceName',ins.name,'status',ins.status,'isAuthoritative',ins.is_authoritative,'quantity',ib.quantity,
           'observedAt',ib.observed_at,'externalLocationRef',ib.external_location_ref
         ) order by ib.observed_at desc) as inventory
         from inventory_balances ib
@@ -357,6 +357,24 @@ async function createInventorySource(tenantId:TenantId,body:Record<string,unknow
   });
 }
 
+async function createInventoryMapping(tenantId:TenantId,body:Record<string,unknown>) {
+  const sourceId=assertUuid(body.sourceId,"sourceId");
+  const spatialNodeId=assertUuid(body.spatialNodeId,"spatialNodeId");
+  const externalLocationRef=text(body.externalLocationRef,"externalLocationRef",160);
+  return withTenant(tenantId,async(db)=>{
+    const source=await db.query({text:"select id from inventory_sources where id=$1",values:[sourceId]});
+    if(!source.rows[0]) throw new ApiError(404,"NOT_FOUND","Inventory source not found");
+    const node=await db.query({text:"select id from spatial_nodes where id=$1 and deleted_at is null",values:[spatialNodeId]});
+    if(!node.rows[0]) throw new ApiError(404,"NOT_FOUND","Spatial location not found");
+    const result=await db.query({
+      text:"insert into inventory_location_mappings (tenant_id,source_id,spatial_node_id,external_location_ref) values (current_setting('app.tenant_id')::uuid,$1,$2,$3) on conflict (tenant_id,source_id,external_location_ref) do update set spatial_node_id=excluded.spatial_node_id,updated_at=now() returning id,source_id,spatial_node_id,external_location_ref",
+      values:[sourceId,spatialNodeId,externalLocationRef]
+    });
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'map','inventory_location_mapping',$1,$2::jsonb,'{""source"":""api""}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
+    return result.rows[0];
+  });
+}
+
 async function importProducts(tenantId:TenantId,body:Record<string,unknown>) {
   const rows=bodyRows(body.rows);
   const sourceId=body.sourceId==null ? null : assertUuid(body.sourceId,"sourceId");
@@ -382,11 +400,31 @@ async function importProducts(tenantId:TenantId,body:Record<string,unknown>) {
         const quantity=integer(row.quantity,"quantity",0,2_000_000_000);
         const externalLocationRef=optionalText(row.locationCode ?? row["Location Code"],"locationCode",160);
         if (externalLocationRef===null) throw new ApiError(400,"INVALID_INPUT","locationCode is required when importing quantity");
+        const mapped=await db.query({
+          text:"select spatial_node_id from inventory_location_mappings where source_id=$1 and external_location_ref=$2",
+          values:[sourceId,externalLocationRef]
+        });
+        if(!mapped.rows[0]){
+          const byCode=await db.query({
+            text:"select id from spatial_nodes where code=$1 and deleted_at is null",
+            values:[externalLocationRef]
+          });
+          if(byCode.rows.length!==1) {
+            throw new ApiError(409,"LOCATION_MAPPING_REQUIRED","Location Code does not map uniquely to a spatial node",{locationCode:externalLocationRef});
+          }
+          await db.query({
+            text:"insert into inventory_location_mappings (tenant_id,source_id,spatial_node_id,external_location_ref) values (current_setting('app.tenant_id')::uuid,$1,$2,$3)",
+            values:[sourceId,byCode.rows[0].id,externalLocationRef]
+          });
+        }
         await db.query({
           text:"insert into inventory_balances (tenant_id,source_id,product_id,external_location_ref,quantity,observed_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,now()) on conflict (tenant_id,source_id,product_id,external_location_ref) do update set quantity=excluded.quantity,observed_at=excluded.observed_at,updated_at=now(),deleted_at=null",
           values:[sourceId,upsert.rows[0].id,externalLocationRef,quantity]
         });
       }
+    }
+    if(sourceId){
+      await db.query({text:"update inventory_sources set status='connected',last_synced_at=now(),updated_at=now() where id=$1",values:[sourceId]});
     }
     await db.query({text:"insert into audit_events (tenant_id,action,entity_type,metadata) values (current_setting('app.tenant_id')::uuid,'import','product_import',$1::jsonb)",values:[JSON.stringify({rows:rows.length,created,updated,sourceId})]});
     return {rows:rows.length,created,updated};
@@ -415,6 +453,7 @@ async function route(req:IncomingMessage,res:ServerResponse){
   if (url.pathname==="/api/products" && method==="POST") return sendJson(res,201,await createProduct(tenantId,await readJson(req)));
   if (url.pathname==="/api/inventory-sources" && method==="GET") return sendJson(res,200,await listInventorySources(tenantId));
   if (url.pathname==="/api/inventory-sources" && method==="POST") return sendJson(res,201,await createInventorySource(tenantId,await readJson(req)));
+  if (url.pathname==="/api/inventory-location-mappings" && method==="POST") return sendJson(res,201,await createInventoryMapping(tenantId,await readJson(req)));
   if (url.pathname==="/api/placements" && method==="POST") return sendJson(res,201,await createPlacement(tenantId,await readJson(req)));
   if (url.pathname==="/api/import/products" && method==="POST") return sendJson(res,200,await importProducts(tenantId,await readJson(req)));
 
