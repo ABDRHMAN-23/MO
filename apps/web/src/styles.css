@@ -13,3 +13,10 @@
 .mapping-row select{width:100%;padding:8px 9px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font-size:11px}
 .integration-message{font-size:11px;padding:8px 9px;border-radius:8px;background:#eef2ff;color:#3730a3}
 @media(max-width:840px){.integration-actions{grid-template-columns:1fr}.integration-actions button:last-child{grid-column:auto}}
+
+.toolbar-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.floor-select{min-width:130px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#0f172a;font-weight:700;font-size:11px}
+.transform-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin:10px 0 13px}
+.transform-grid label{display:grid;gap:4px;font-size:9px;color:#64748b;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
+.transform-grid input{width:100%;padding:8px;border:1px solid #cbd5e1;border-radius:8px;font-size:11px;background:#fff;color:#0f172a}
+@media(max-width:840px){.toolbar-actions{width:100%;overflow-x:auto;flex-wrap:nowrap}.floor-select{min-width:120px}.transform-grid{grid-template-columns:repeat(2,1fr)}}
