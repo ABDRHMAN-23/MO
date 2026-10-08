@@ -305,7 +305,7 @@ async function createPlacement(tenantId:TenantId,body:Record<string,unknown>) {
     if (!product.rows[0]) throw new ApiError(404,"NOT_FOUND","Product not found");
     const node=await db.query({text:"select id from spatial_nodes where id=$1 and deleted_at is null",values:[spatialNodeId]});
     if (!node.rows[0]) throw new ApiError(404,"NOT_FOUND","Spatial location not found");
-    const created=await db.query({text:"insert into placements (tenant_id,product_id,spatial_node_id,status,verified_at) values (current_setting('app.tenant_id')::uuid,$1,$2,'placed',now()) returning id,product_id,spatial_node_id,status,verified_at",values:[productId,spatialNodeId]});
+    const created=await db.query({text:"insert into placements (tenant_id,product_id,spatial_node_id,status,verified_at) values (current_setting('app.tenant_id')::uuid,$1,$2,'placed',now()) returning id,product_id,spatial_node_id,status,verified_at,updated_at",values:[productId,spatialNodeId]});
     await db.query({text:"insert into placement_history (tenant_id,placement_id,product_id,new_spatial_node_id,source,reason) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,'user',coalesce($4,'Initial placement'))",values:[created.rows[0].id,productId,spatialNodeId,reason]});
     await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','placement',$1,$2::jsonb,'{\"source\":\"api\"}')",values:[created.rows[0].id,JSON.stringify(created.rows[0])]});
     return created.rows[0];
