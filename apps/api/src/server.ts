@@ -489,7 +489,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
         let productId=productMap.get(product.externalProductId);
         if(productId){
           const updated=await db.query({
-            text:"update products set sku=$1,name=$2,barcode=$3,category=$4,image_url=$5,status='active',updated_at=now() where id=$6 returning id",
+            text:"update products set sku=$1,name=$2,barcode=$3,category=$4,image_url=$5,search_text_normalized=app.normalize_search_text($2 || ' ' || $1 || ' ' || coalesce($3,'') || ' ' || coalesce($4,'') || ' ' || coalesce($5,'')),status='active',updated_at=now() where id=$6 returning id",
             values:[product.sku,product.name,product.barcode,product.category,product.imageUrl,productId]
           });
           if(!updated.rows[0]) productId=undefined;
@@ -512,7 +512,17 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
 
       for(const location of locations){
         await db.query({
-          text:"insert into integration_locations (tenant_id,connection_id,external_location_id,name,raw_metadata,synced_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4::jsonb,now()) on conflict (tenant_id,connection_id,external_location_id) do update set name=excluded.name,raw_metadata=excluded.raw_metadata,active=true,synced_at=excluded.synced_at",
+          text:"insert into integration_locations
+          (tenant_id,connection_id,external_location_id,parent_external_location_id,name,complete_name,usage,raw_metadata,synced_at)
+          values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5,$6,$7::jsonb,now())
+          on conflict (tenant_id,connection_id,external_location_id) do update
+            set parent_external_location_id=excluded.parent_external_location_id,
+                name=excluded.name,
+                complete_name=excluded.complete_name,
+                usage=excluded.usage,
+                raw_metadata=excluded.raw_metadata,
+                active=true,
+                synced_at=excluded.synced_at",
           values:[connectionId,location.externalLocationId,location.parentExternalLocationId??null,location.name,location.completeName??null,location.usage??null,JSON.stringify(location)]
         });
         locationsUpserted++;
