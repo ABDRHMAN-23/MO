@@ -5,7 +5,8 @@ export type PlacementId = string & { readonly __brand: "PlacementId" };
 
 export type SpatialNodeType =
   | "space" | "floor" | "zone" | "room" | "aisle" | "rack"
-  | "shelf" | "cabinet" | "drawer" | "bin" | "box" | "slot";
+  | "shelf" | "cabinet" | "drawer" | "bin" | "box" | "slot"
+  | "wall" | "table" | "desk" | "counter" | "refrigerator" | "freezer" | "display_case" | "storage_area";
 export type ProductStatus = "active" | "archived" | "discontinued" | "draft";
 export type PlacementStatus = "placed" | "missing_location" | "stale_location" | "disputed";
 export type InventorySourceStatus = "connected" | "syncing" | "delayed" | "disconnected" | "error";
@@ -65,7 +66,8 @@ export interface ProductLocationResult {
 }
 
 export const SPATIAL_NODE_TYPES: SpatialNodeType[] = [
-  "space","floor","zone","room","aisle","rack","shelf","cabinet","drawer","bin","box","slot"
+  "space","floor","zone","room","aisle","rack","shelf","cabinet","drawer","bin","box","slot",
+  "wall","table","desk","counter","refrigerator","freezer","display_case","storage_area"
 ];
 
 export function isPositioned(node: SpatialNode): node is SpatialNode & { x: number; y: number; z: number } {
