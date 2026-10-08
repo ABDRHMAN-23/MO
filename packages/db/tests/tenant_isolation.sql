@@ -32,6 +32,14 @@ set role spatial_runtime_test;
 begin;
 select app.set_tenant_context('11111111-1111-4111-8111-111111111111');
 
+do $search_assert$
+begin
+  if app.normalize_search_text('أَكْسِير  ديور ـ') <> 'اكسير ديور' then
+    raise exception 'Arabic search normalization regression';
+  end if;
+end
+$search_assert$;
+
 insert into users (tenant_id,external_subject,display_name,role)
 values (app.current_tenant_id(),'user-a','A','owner')
 on conflict do nothing;
