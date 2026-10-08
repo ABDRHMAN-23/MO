@@ -28,7 +28,7 @@ jobs:
             pnpm install --no-frozen-lockfile
           fi
       - name: Persist lockfile on first successful install
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !hashFiles('pnpm-lock.yaml')
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && hashFiles('pnpm-lock.yaml') == ''
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
