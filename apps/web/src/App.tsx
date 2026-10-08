@@ -18,8 +18,8 @@ import { parseCsv } from "./csv";
 type Locale="en"|"ar";
 
 const copy={
-  en:{integration:"Integrations",integrationName:"Connection name",odooUrl:"Odoo HTTPS URL",odooDatabase:"Odoo database",odooApiKey:"Odoo API key",connectOdoo:"Connect Odoo",noIntegrations:"No Odoo connections yet.",testConnection:"Test connection",syncNow:"Sync now",loadOdooLocations:"Load Odoo locations",map:"Map",chooseLocation:"Choose internal location",integrationCreated:"Odoo connection saved.",integrationHealthy:"Odoo connection is healthy.",syncComplete:"Odoo sync complete",mappingSaved:"Location mapping saved",lastSync:"Last sync",brand:"Spatial Inventory",tagline:"Search your physical space.",subtag:"Inventory truth stays in the data layer. 3D shows where it is.",online:"Connected",offline:"Offline",find:"Find an item",product:"Products",location:"Locations",source:"Inventory sources",create:"Create",space:"Space",floor:"Floor",zone:"Zone",room:"Room",aisle:"Aisle",rack:"Rack",shelf:"Shelf",cabinet:"Cabinet",drawer:"Drawer",bin:"Bin",box:"Box",slot:"Slot",map3d:"3D",plan2d:"2D plan",edit:"Edit layout",searchPlaceholder:"Product, SKU, barcode, shelf…",noResults:"No matching records.",unpositioned:"No coordinates yet",quantity:"Verified quantity",unknown:"Not currently verified",sourceVerified:"Verified from connected source",noLocation:"No physical placement yet.",breadcrumbs:"Exact place",addLocation:"Add location",addProduct:"Add product",place:"Place product",name:"Name",sku:"SKU",barcode:"Barcode",category:"Category",parent:"Parent location",createLocation:"Create location",createProduct:"Create product",placeProduct:"Place product",choose:"Choose…",importCsv:"Import CSV",sourceForQuantity:"Stock source for imported quantity (optional)",createSource:"Add source",sourceName:"Source name",sourceProvider:"Provider type",csvDone:"Import completed",scan:"Scan barcode",stop:"Stop scanner",camera:"Camera",positionSaved:"Position saved",selected:"Selected",children:"Children",noChildren:"No direct children.",noProducts:"No products in this location.",dataUnavailable:"The API/database is unavailable. Connect the backend and reload.",authRequired:"Production authentication is not configured yet.",errors:"Something went wrong",productCount:"Products",nodeCount:"Spatial objects",placementCount:"Placements",sourceCount:"Sources",language:"العربية",reason:"Movement reason"},
-  ar:{integration:"التكاملات",integrationName:"اسم الاتصال",odooUrl:"رابط Odoo عبر HTTPS",odooDatabase:"قاعدة Odoo",odooApiKey:"مفتاح API لـ Odoo",connectOdoo:"ربط Odoo",noIntegrations:"لا توجد اتصالات Odoo بعد.",testConnection:"اختبار الاتصال",syncNow:"مزامنة الآن",loadOdooLocations:"تحميل مواقع Odoo",map:"مطابقة",chooseLocation:"اختر الموقع الداخلي",integrationCreated:"تم حفظ اتصال Odoo.",integrationHealthy:"اتصال Odoo سليم.",syncComplete:"اكتملت مزامنة Odoo",mappingSaved:"تم حفظ مطابقة الموقع",lastSync:"آخر مزامنة",brand:"الذاكرة المكانية للمخزون",tagline:"ابحث في مكانك الحقيقي.",subtag:"حقيقة المخزون تبقى في طبقة البيانات، وواجهة 3D تريك أين يوجد.",online:"متصل",offline:"بدون اتصال",find:"ابحث عن صنف",product:"المنتجات",location:"المواقع",source:"مصادر المخزون",create:"إنشاء",space:"مساحة",floor:"طابق",zone:"منطقة",room:"غرفة",aisle:"ممر",rack:"رف تخزين",shelf:"رف",cabinet:"خزانة",drawer:"درج",bin:"حاوية",box:"صندوق",slot:"خانة",map3d:"3D",plan2d:"المخطط 2D",edit:"تعديل المخطط",searchPlaceholder:"اسم المنتج، SKU، الباركود، الرف…",noResults:"لا توجد نتائج مطابقة.",unpositioned:"لا توجد إحداثيات بعد",quantity:"الكمية الموثقة",unknown:"غير موثقة حاليًا",sourceVerified:"موثقة من مصدر مخزون متصل",noLocation:"لا يوجد موقع فعلي مرتبط بعد.",breadcrumbs:"المكان الدقيق",addLocation:"إضافة موقع",addProduct:"إضافة منتج",place:"ربط منتج بموقع",name:"الاسم",sku:"SKU",barcode:"الباركود",category:"الفئة",parent:"الموقع الأب",createLocation:"إنشاء الموقع",createProduct:"إنشاء المنتج",placeProduct:"ربط المنتج",choose:"اختر…",importCsv:"استيراد CSV",sourceForQuantity:"مصدر المخزون للكمية (اختياري)",createSource:"إضافة مصدر",sourceName:"اسم المصدر",sourceProvider:"نوع المصدر",csvDone:"اكتمل الاستيراد",scan:"مسح الباركود",stop:"إيقاف الماسح",camera:"الكاميرا",positionSaved:"تم حفظ الموقع",selected:"المحدد",children:"العناصر التابعة",noChildren:"لا توجد عناصر تابعة مباشرة.",noProducts:"لا توجد منتجات في هذا الموقع.",dataUnavailable:"قاعدة البيانات أو API غير متاحين. شغّل الخلفية ثم أعد التحميل.",authRequired:"مصادقة الإنتاج لم تُضبط بعد.",errors:"حدث خطأ",productCount:"المنتجات",nodeCount:"العناصر المكانية",placementCount:"الربط المكاني",sourceCount:"المصادر",language:"English",reason:"سبب الحركة"}
+  en:{integration:"Integrations",integrationName:"Connection name",odooUrl:"Odoo HTTPS URL",odooDatabase:"Odoo database",odooApiKey:"Odoo API key",connectOdoo:"Connect Odoo",noIntegrations:"No Odoo connections yet.",testConnection:"Test connection",syncNow:"Sync now",loadOdooLocations:"Load Odoo locations",map:"Map",chooseLocation:"Choose internal location",integrationCreated:"Odoo connection saved.",integrationHealthy:"Odoo connection is healthy.",syncComplete:"Odoo sync complete",mappingSaved:"Location mapping saved",lastSync:"Last sync",allFloors:"All floors",undo:"Undo",redo:"Redo",undone:"Change undone",redone:"Change redone",brand:"Spatial Inventory",tagline:"Search your physical space.",subtag:"Inventory truth stays in the data layer. 3D shows where it is.",online:"Connected",offline:"Offline",find:"Find an item",product:"Products",location:"Locations",source:"Inventory sources",create:"Create",space:"Space",floor:"Floor",zone:"Zone",room:"Room",aisle:"Aisle",rack:"Rack",shelf:"Shelf",cabinet:"Cabinet",drawer:"Drawer",bin:"Bin",box:"Box",slot:"Slot",map3d:"3D",plan2d:"2D plan",edit:"Edit layout",searchPlaceholder:"Product, SKU, barcode, shelf…",noResults:"No matching records.",unpositioned:"No coordinates yet",quantity:"Verified quantity",unknown:"Not currently verified",sourceVerified:"Verified from connected source",noLocation:"No physical placement yet.",breadcrumbs:"Exact place",addLocation:"Add location",addProduct:"Add product",place:"Place product",name:"Name",sku:"SKU",barcode:"Barcode",category:"Category",parent:"Parent location",createLocation:"Create location",createProduct:"Create product",placeProduct:"Place product",choose:"Choose…",importCsv:"Import CSV",sourceForQuantity:"Stock source for imported quantity (optional)",createSource:"Add source",sourceName:"Source name",sourceProvider:"Provider type",csvDone:"Import completed",scan:"Scan barcode",stop:"Stop scanner",camera:"Camera",positionSaved:"Position saved",selected:"Selected",children:"Children",noChildren:"No direct children.",noProducts:"No products in this location.",dataUnavailable:"The API/database is unavailable. Connect the backend and reload.",authRequired:"Production authentication is not configured yet.",errors:"Something went wrong",productCount:"Products",nodeCount:"Spatial objects",placementCount:"Placements",sourceCount:"Sources",language:"العربية",reason:"Movement reason"},
+  ar:{integration:"التكاملات",integrationName:"اسم الاتصال",odooUrl:"رابط Odoo عبر HTTPS",odooDatabase:"قاعدة Odoo",odooApiKey:"مفتاح API لـ Odoo",connectOdoo:"ربط Odoo",noIntegrations:"لا توجد اتصالات Odoo بعد.",testConnection:"اختبار الاتصال",syncNow:"مزامنة الآن",loadOdooLocations:"تحميل مواقع Odoo",map:"مطابقة",chooseLocation:"اختر الموقع الداخلي",integrationCreated:"تم حفظ اتصال Odoo.",integrationHealthy:"اتصال Odoo سليم.",syncComplete:"اكتملت مزامنة Odoo",mappingSaved:"تم حفظ مطابقة الموقع",lastSync:"آخر مزامنة",allFloors:"كل الطوابق",undo:"تراجع",redo:"إعادة",undone:"تم التراجع عن التغيير",redone:"تمت إعادة التغيير",brand:"الذاكرة المكانية للمخزون",tagline:"ابحث في مكانك الحقيقي.",subtag:"حقيقة المخزون تبقى في طبقة البيانات، وواجهة 3D تريك أين يوجد.",online:"متصل",offline:"بدون اتصال",find:"ابحث عن صنف",product:"المنتجات",location:"المواقع",source:"مصادر المخزون",create:"إنشاء",space:"مساحة",floor:"طابق",zone:"منطقة",room:"غرفة",aisle:"ممر",rack:"رف تخزين",shelf:"رف",cabinet:"خزانة",drawer:"درج",bin:"حاوية",box:"صندوق",slot:"خانة",map3d:"3D",plan2d:"المخطط 2D",edit:"تعديل المخطط",searchPlaceholder:"اسم المنتج، SKU، الباركود، الرف…",noResults:"لا توجد نتائج مطابقة.",unpositioned:"لا توجد إحداثيات بعد",quantity:"الكمية الموثقة",unknown:"غير موثقة حاليًا",sourceVerified:"موثقة من مصدر مخزون متصل",noLocation:"لا يوجد موقع فعلي مرتبط بعد.",breadcrumbs:"المكان الدقيق",addLocation:"إضافة موقع",addProduct:"إضافة منتج",place:"ربط منتج بموقع",name:"الاسم",sku:"SKU",barcode:"الباركود",category:"الفئة",parent:"الموقع الأب",createLocation:"إنشاء الموقع",createProduct:"إنشاء المنتج",placeProduct:"ربط المنتج",choose:"اختر…",importCsv:"استيراد CSV",sourceForQuantity:"مصدر المخزون للكمية (اختياري)",createSource:"إضافة مصدر",sourceName:"اسم المصدر",sourceProvider:"نوع المصدر",csvDone:"اكتمل الاستيراد",scan:"مسح الباركود",stop:"إيقاف الماسح",camera:"الكاميرا",positionSaved:"تم حفظ الموقع",selected:"المحدد",children:"العناصر التابعة",noChildren:"لا توجد عناصر تابعة مباشرة.",noProducts:"لا توجد منتجات في هذا الموقع.",dataUnavailable:"قاعدة البيانات أو API غير متاحين. شغّل الخلفية ثم أعد التحميل.",authRequired:"مصادقة الإنتاج لم تُضبط بعد.",errors:"حدث خطأ",productCount:"المنتجات",nodeCount:"العناصر المكانية",placementCount:"الربط المكاني",sourceCount:"المصادر",language:"English",reason:"سبب الحركة"}
 } as const;
 
 const nodeLabel=(locale:Locale,type:SpatialNode["type"])=>copy[locale][type];
@@ -43,7 +43,7 @@ function Scene({nodes,selectedId,onSelect}:{nodes:SpatialNode[];selectedId:strin
     {positioned.map((node)=>{
       const selected=node.id===selectedId;
       const container=["space","floor","zone","room","aisle","rack","cabinet"].includes(node.type);
-      return <group key={node.id} position={[node.x,node.y+node.height/2,node.z]} onClick={(event)=>{event.stopPropagation();onSelect(node.id);}}>
+      return <group key={node.id} position={[node.x,node.y+node.height/2,node.z]} rotation={[node.rotationX,node.rotationY,node.rotationZ]} onClick={(event)=>{event.stopPropagation();onSelect(node.id);}}>
         <mesh><boxGeometry args={[Math.max(node.width,.1),Math.max(node.height,.1),Math.max(node.depth,.1)]}/><meshStandardMaterial color={selected?"#0f172a":container?"#94a3b8":"#2563eb"} transparent opacity={selected?1:container?.22:.78} wireframe={container&&!selected}/></mesh>
       </group>;
     })}
@@ -247,6 +247,9 @@ function IntegrationPanel({
 export function App(){
   const [locale,setLocale]=useState<Locale>("en"),t=(key:keyof typeof copy.en)=>copy[locale][key];
   const [online,setOnline]=useState(navigator.onLine),[nodes,setNodes]=useState<SpatialNode[]>([]),[products,setProducts]=useState<Product[]>([]),[sources,setSources]=useState<InventorySourceSummary[]>([]),[integrations,setIntegrations]=useState<IntegrationSummary[]>([]),[overview,setOverview]=useState<Overview|null>(null);
+  const [selectedFloorId,setSelectedFloorId]=useState<string|null>(null);
+  const [history,setHistory]=useState<Array<{id:string;before:Partial<SpatialNode>;after:Partial<SpatialNode>}>>([]);
+  const [historyIndex,setHistoryIndex]=useState(-1);
   const [query,setQuery]=useState(""),[selectedProductId,setSelectedProductId]=useState<string|null>(null),[selectedNodeId,setSelectedNodeId]=useState<string|null>(null),[locations,setLocations]=useState<ProductLocationResult[]>([]),[nodeProducts,setNodeProducts]=useState<Product[]>([]),[view,setView]=useState<"3d"|"2d">("3d"),[edit,setEdit]=useState(false),[showScanner,setShowScanner]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
   const [locationForm,setLocationForm]=useState({type:"shelf",name:"",code:"",parentId:"",x:"",y:"",z:""});
   const [productForm,setProductForm]=useState({sku:"",name:"",barcode:"",category:""});
@@ -276,14 +279,65 @@ export function App(){
   useEffect(()=>{if(!selectedProductId){setLocations([]);return;}void api.productLocations(selectedProductId).then(setLocations).catch(()=>setLocations([]));},[selectedProductId]);
   useEffect(()=>{if(!selectedNodeId){setNodeProducts([]);return;}void api.spatialProducts(selectedNodeId).then(setNodeProducts).catch(()=>setNodeProducts([]));},[selectedNodeId]);
 
+  const floors=useMemo(()=>nodes.filter((node)=>node.type==="floor"),[nodes]);
+  const visibleNodes=useMemo(
+    ()=>selectedFloorId ? nodes.filter((node)=>node.id===selectedFloorId || node.floorId===selectedFloorId) : nodes,
+    [nodes,selectedFloorId]
+  );
   const selectedProduct=products.find((p)=>p.id===selectedProductId)??null,selectedNode=nodes.find((n)=>n.id===selectedNodeId)??null;
   const selectedLocation=selectedProductId ? locations.find((item)=>item.placement.spatialNodeId===selectedNodeId)??locations[0]??null:null;
-  const unpositioned=nodes.filter((n)=>!isPositioned(n)),children=selectedNode?nodes.filter((n)=>n.parentId===selectedNode.id):[],currentQuantity=selectedLocation?latestVerifiedQuantity(selectedLocation.inventory):null;
+  const unpositioned=visibleNodes.filter((n)=>!isPositioned(n)),children=selectedNode?nodes.filter((n)=>n.parentId===selectedNode.id):[],currentQuantity=selectedLocation?latestVerifiedQuantity(selectedLocation.inventory):null;
   const sortedProducts=useMemo(()=>products.slice(0,60),[products]);
 
   const selectProduct=async(product:Product)=>{setSelectedProductId(product.id);setSelectedNodeId(null);setNotice("");const result=await api.productLocations(product.id).catch(()=>[]);setLocations(result);if(result[0])setSelectedNodeId(result[0].placement.spatialNodeId);};
   const selectNode=async(id:string)=>{setSelectedNodeId(id);setSelectedProductId(null);setNotice("");const result=await api.spatialProducts(id).catch(()=>[]);setNodeProducts(result);};
-  const moveNode=async(id:string,x:number,z:number)=>{if(!online){setError(t("offline"));return;}try{const updated=await api.updateSpatial(id,{x,z});setNodes((current)=>current.map((node)=>node.id===id?updated:node));setNotice(t("positionSaved"));}catch{setError(t("errors"));}};
+  const applyNodePatch=async(id:string,patch:Record<string,unknown>,recordHistory=true)=>{
+    if(!online){setError(t("offline"));return null;}
+    const before=nodes.find((node)=>node.id===id);
+    if(!before)return null;
+    try{
+      const updated=await api.updateSpatial(id,patch);
+      setNodes((current)=>current.map((node)=>node.id===id?updated:node));
+      if(recordHistory){
+        const afterPatch:Partial<SpatialNode>={...patch};
+        const beforePatch:Partial<SpatialNode>={};
+        for(const key of Object.keys(patch) as Array<keyof SpatialNode>){
+          beforePatch[key]=before[key] as never;
+        }
+        const trimmedHistory=history.slice(0,historyIndex+1);
+        const next=[...trimmedHistory,{id,before:beforePatch,after:afterPatch}];
+        setHistory(next);setHistoryIndex(next.length-1);
+      }
+      return updated;
+    }catch{setError(t("errors"));return null;}
+  };
+
+  const moveNode=async(id:string,x:number,z:number)=>{
+    const updated=await applyNodePatch(id,{x,z});
+    if(updated)setNotice(t("positionSaved"));
+  };
+
+  const undo=async()=>{
+    if(historyIndex<0)return;
+    const entry=history[historyIndex];
+    const updated=await applyNodePatch(entry.id,entry.before,false);
+    if(updated){setHistoryIndex(historyIndex-1);setNotice(t("undone"));}
+  };
+
+  const redo=async()=>{
+    if(historyIndex>=history.length-1)return;
+    const entry=history[historyIndex+1];
+    const updated=await applyNodePatch(entry.id,entry.after,false);
+    if(updated){setHistoryIndex(historyIndex+1);setNotice(t("redone"));}
+  };
+
+  const updateSelectedNode=async(key:"width"|"height"|"depth"|"rotationX"|"rotationY"|"rotationZ",value:string)=>{
+    if(!selectedNode)return;
+    const number=Number(value);
+    if(!Number.isFinite(number))return;
+    const nextValue=["rotationX","rotationY","rotationZ"].includes(key) ? number*Math.PI/180 : number;
+    await applyNodePatch(selectedNode.id,{[key]:nextValue});
+  };
 
   const addLocation=async(event:React.FormEvent)=>{event.preventDefault();try{const created=await api.createSpatial({type:locationForm.type,name:locationForm.name,code:locationForm.code||null,parentId:locationForm.parentId||null,...(locationForm.x!==""?{x:Number(locationForm.x)}:{}),...(locationForm.y!==""?{y:Number(locationForm.y)}:{}),...(locationForm.z!==""?{z:Number(locationForm.z)}:{})});setNodes((current)=>[...current,created]);setSelectedNodeId(created.id);setLocationForm({type:"shelf",name:"",code:"",parentId:"",x:"",y:"",z:""});setNotice(t("create"));}catch{setError(t("errors"));}};
   const addProduct=async(event:React.FormEvent)=>{event.preventDefault();try{const created=await api.createProduct(productForm);setProducts((current)=>[created,...current.filter((p)=>p.id!==created.id)]);setSelectedProductId(created.id);setProductForm({sku:"",name:"",barcode:"",category:""});setNotice(t("create"));}catch{setError(t("errors"));}};
@@ -308,10 +362,25 @@ export function App(){
         <IntegrationPanel integrations={integrations} nodes={nodes} t={t} onRefresh={async()=>{setIntegrations(await api.integrations());await load(query);}}/>
         <label className="import-control"><span>{t("importCsv")}</span><input type="file" accept=".csv,text/csv" onChange={(e)=>{const file=e.target.files?.[0];if(file)void importCsvFile(file,sources.find((source)=>source.is_authoritative)?.id)}}/></label>
       </aside>
-      <section className="center"><div className="view-toolbar"><div className="segmented"><button className={view==="3d"?"active":""} onClick={()=>setView("3d")}>{t("map3d")}</button><button className={view==="2d"?"active":""} onClick={()=>setView("2d")}>{t("plan2d")}</button></div>{view==="2d"&&<button className={edit?"secondary active-btn":"secondary"} onClick={()=>setEdit(!edit)}>{t("edit")}</button>}</div><div className="visual">{view==="3d"?<Scene nodes={nodes} selectedId={selectedNodeId} onSelect={(id)=>void selectNode(id)}/>:<Plan2D nodes={nodes} selectedId={selectedNodeId} edit={edit} onSelect={(id)=>void selectNode(id)} onMoved={moveNode}/>} {unpositioned.length>0&&<div className="unpositioned">{t("unpositioned")}: {unpositioned.length}</div>}</div></section>
+      <section className="center"><div className="view-toolbar">
+          <div className="segmented"><button className={view==="3d"?"active":""} onClick={()=>setView("3d")}>{t("map3d")}</button><button className={view==="2d"?"active":""} onClick={()=>setView("2d")}>{t("plan2d")}</button></div>
+          <div className="toolbar-actions">
+            <select className="floor-select" value={selectedFloorId??""} onChange={(e)=>setSelectedFloorId(e.target.value||null)}>
+              <option value="">{t("allFloors")}</option>
+              {floors.map((floor)=><option key={floor.id} value={floor.id}>{floor.code??floor.name}</option>)}
+            </select>
+            {historyIndex>=0&&<button className="secondary" type="button" onClick={()=>void undo()}>{t("undo")}</button>}
+            {historyIndex<history.length-1&&<button className="secondary" type="button" onClick={()=>void redo()}>{t("redo")}</button>}
+            {view==="2d"&&<button className={edit?"secondary active-btn":"secondary"} onClick={()=>setEdit(!edit)}>{t("edit")}</button>}
+          </div>
+        </div><div className="visual">{view==="3d"?<Scene nodes={visibleNodes} selectedId={selectedNodeId} onSelect={(id)=>void selectNode(id)}/>:<Plan2D nodes={visibleNodes} selectedId={selectedNodeId} edit={edit} onSelect={(id)=>void selectNode(id)} onMoved={moveNode}/>} {unpositioned.length>0&&<div className="unpositioned">{t("unpositioned")}: {unpositioned.length}</div>}</div></section>
       <aside className="details">
         {selectedProduct&&<div className="detail-card"><div className="section-head"><span>{t("selected")}</span><span className="pill">{selectedProduct.status}</span></div><h2>{selectedProduct.name}</h2><p>{selectedProduct.sku}{selectedProduct.barcode? ` · ${selectedProduct.barcode}`:""}</p>{selectedLocation?<><div className="trust"><span>{t("quantity")}</span><strong>{currentQuantity??t("unknown")}</strong>{currentQuantity!==null&&<small>{t("sourceVerified")}</small>}</div><div className="section-head"><span>{t("breadcrumbs")}</span></div><div className="crumbs">{selectedLocation.breadcrumb.map((node)=><span key={node.id}>{node.code??node.name}</span>)}</div></>:<div className="empty">{t("noLocation")}</div>}</div>}
-        {selectedNode&&<div className="detail-card"><div className="section-head"><span>{t("selected")}</span><span className="pill">{nodeLabel(locale,selectedNode.type)}</span></div><h2>{selectedNode.code??selectedNode.name}</h2><p>{selectedNode.name}</p><div className="detail-grid"><span>X <b>{selectedNode.x??"—"}</b></span><span>Y <b>{selectedNode.y??"—"}</b></span><span>Z <b>{selectedNode.z??"—"}</b></span></div><div className="section-head"><span>{t("children")}</span></div>{children.length?<div className="mini-list">{children.map((child)=><button key={child.id} onClick={()=>void selectNode(child.id)}>{child.code??child.name}</button>)}</div>:<div className="empty">{t("noChildren")}</div>}<div className="section-head"><span>{t("product")}</span></div>{nodeProducts.length?nodeProducts.map((p)=><ProductCard key={p.id} product={p} active={p.id===selectedProductId} onClick={()=>void selectProduct(p)}/>):<div className="empty">{t("noProducts")}</div>}</div>}
+        {selectedNode&&<div className="detail-card"><div className="section-head"><span>{t("selected")}</span><span className="pill">{nodeLabel(locale,selectedNode.type)}</span></div><h2>{selectedNode.code??selectedNode.name}</h2><p>{selectedNode.name}</p><div className="detail-grid"><span>X <b>{selectedNode.x??"—"}</b></span><span>Y <b>{selectedNode.y??"—"}</b></span><span>Z <b>{selectedNode.z??"—"}</b></span></div>
+          <div className="transform-grid">
+            {(["width","height","depth"] as const).map((key)=><label key={key}>{key}<input type="number" min="0.01" step="0.1" defaultValue={String(selectedNode[key])} onBlur={(e)=>void updateSelectedNode(key,e.target.value)}/></label>)}
+            {(["rotationX","rotationY","rotationZ"] as const).map((key)=><label key={key}>{key}<input type="number" step="1" defaultValue={String(Math.round((selectedNode[key]*180/Math.PI)*100)/100)} onBlur={(e)=>void updateSelectedNode(key,e.target.value)}/></label>)}
+          </div><div className="section-head"><span>{t("children")}</span></div>{children.length?<div className="mini-list">{children.map((child)=><button key={child.id} onClick={()=>void selectNode(child.id)}>{child.code??child.name}</button>)}</div>:<div className="empty">{t("noChildren")}</div>}<div className="section-head"><span>{t("product")}</span></div>{nodeProducts.length?nodeProducts.map((p)=><ProductCard key={p.id} product={p} active={p.id===selectedProductId} onClick={()=>void selectProduct(p)}/>):<div className="empty">{t("noProducts")}</div>}</div>}
       </aside>
     </main>
     {showScanner&&<BarcodePanel t={t} onClose={()=>setShowScanner(false)} onFound={(value)=>{setQuery(value);setShowScanner(false);}}/>}
