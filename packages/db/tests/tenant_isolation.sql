@@ -43,14 +43,15 @@ insert into products (tenant_id,sku,name)
 values (app.current_tenant_id(),'A-001','Tenant A Product');
 
 -- A runtime session must never see B.
-select 0 as unexpected_rows
-where exists (
-  select 1 from tenants where id='22222222-2222-4222-8222-222222222222'
-)
-union all
-select 0 where exists (
-  select 1 from products where sku='B-001'
-);
+do $
+begin
+  if exists (select 1 from tenants where id='22222222-2222-4222-8222-222222222222') then
+    raise exception 'tenant isolation failure: tenant A can read tenant B';
+  end if;
+  if exists (select 1 from products where sku='B-001') then
+    raise exception 'tenant isolation failure: tenant A can read tenant B product';
+  end if;
+end $;
 
 -- Explicitly crossing the tenant boundary must fail policy checks.
 do $$
@@ -82,4 +83,5 @@ reset role;
 -- Keep the test database reusable.
 delete from tenants
 where id in ('11111111-1111-4111-8111-111111111111','22222222-2222-4222-8222-222222222222');
+drop owned by spatial_runtime_test;
 drop role spatial_runtime_test;
