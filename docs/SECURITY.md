@@ -46,3 +46,10 @@ Connector credentials must never reach the browser. The production integration s
 ## Uploads and SSRF
 
 Future generic connector/upload endpoints must restrict outbound hosts, enforce HTTPS, validate content type and size, and reject private or link-local addresses. Do not add a generic fetch-this-URL endpoint without explicit SSRF defenses.
+
+
+## Odoo integration secret storage
+
+Odoo API keys are encrypted with AES-256-GCM before database persistence using INTEGRATION_ENCRYPTION_KEY. The ciphertext, IV, authentication tag, and version are stored together; the plaintext key never reaches the browser or audit log.
+
+Production should source INTEGRATION_ENCRYPTION_KEY from a managed secret/KMS facility and rotate it through a versioned migration path. Odoo 19 API keys have provider-side expiration and rotation rules; the connector uses them only server-side.

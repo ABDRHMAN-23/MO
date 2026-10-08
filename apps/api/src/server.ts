@@ -8,11 +8,13 @@ import {
   type TenantId
 } from "@spatial/domain";
 import { resolveTenant } from "./auth";
+import { decryptSecret, encryptSecret } from "./integration-crypto";
 import { healthcheck, withTenant } from "./db";
 import {
   ApiError, assertUuid, bodyRows, finiteNumber, integer, optionalText, requestId, safeMetadata, text
 } from "./validation";
 import { RateLimiter } from "./rate-limit";
+import { OdooConnector } from "@spatial/integrations";
 
 const port = Number(process.env.PORT ?? 8787);
 const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:5173";
@@ -342,6 +344,194 @@ async function listInventorySources(tenantId:TenantId) {
   });
 }
 
+
+
+async function listIntegrations(tenantId:TenantId) {
+  return withTenant(tenantId,async(db)=>{
+    const result=await db.query({
+      text:`select
+        c.id,c.provider_type,c.name,c.base_url,c.provider_database,c.enabled,
+        c.last_healthcheck_at,c.last_error,
+        s.id as source_id,s.status as source_status,s.is_authoritative,s.last_synced_at
+      from integration_connections c
+      left join inventory_sources s on s.connection_id=c.id
+      order by c.name`
+    });
+    return result.rows;
+  });
+}
+
+async function createOdooConnection(tenantId:TenantId,body:Record<string,unknown>) {
+  const name=text(body.name,"name",160);
+  const baseUrl=text(body.baseUrl,"baseUrl",2048).replace(/\\/$/,"");
+  if (!/^https:\\/\\//i.test(baseUrl)) throw new ApiError(400,"INVALID_INPUT","Odoo baseUrl must use HTTPS");
+  const database=optionalText(body.database,"database",120);
+  const apiKey=text(body.apiKey,"apiKey",2048);
+  const encryptedSecret=encryptSecret(apiKey);
+
+  return withTenant(tenantId,async(db)=>{
+    const connection=await db.query({
+      text:`insert into integration_connections
+        (tenant_id,provider_type,name,base_url,provider_database,encrypted_secret,enabled)
+        values (current_setting('app.tenant_id')::uuid,'odoo',$1,$2,$3,$4,true)
+        returning id,provider_type,name,base_url,provider_database,enabled,last_healthcheck_at,last_error`,
+      values:[name,baseUrl,database,encryptedSecret]
+    });
+    const source=await db.query({
+      text:`insert into inventory_sources
+        (tenant_id,provider_type,name,status,is_authoritative,connection_id)
+        values (current_setting('app.tenant_id')::uuid,'odoo',$1,'disconnected',true,$2)
+        returning id,status,is_authoritative,last_synced_at`,
+      values:[name,connection.rows[0].id]
+    });
+    await db.query({
+      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','integration_connection',$1,$2::jsonb,'{\"source\":\"api\",\"provider\":\"odoo\"}')",
+      values:[connection.rows[0].id,JSON.stringify({provider_type:"odoo",name,base_url:baseUrl,provider_database:database,source_id:source.rows[0].id})]
+    });
+    return {...connection.rows[0],source_id:source.rows[0].id,source_status:source.rows[0].status,is_authoritative:source.rows[0].is_authoritative,last_synced_at:null};
+  });
+}
+
+async function getOdooConnection(tenantId:TenantId,connectionId:string) {
+  assertUuid(connectionId,"connectionId");
+  return withTenant(tenantId,async(db)=>{
+    const result=await db.query({
+      text:"select c.id,c.name,c.base_url,c.provider_database,c.encrypted_secret,c.enabled,s.id as source_id from integration_connections c join inventory_sources s on s.connection_id=c.id where c.id=$1 and c.provider_type='odoo'",
+      values:[connectionId]
+    });
+    if(!result.rows[0]) throw new ApiError(404,"NOT_FOUND","Odoo integration not found");
+    if(!result.rows[0].enabled) throw new ApiError(409,"INTEGRATION_DISABLED","Integration is disabled");
+    return result.rows[0];
+  });
+}
+
+async function odooHealth(tenantId:TenantId,connectionId:string) {
+  const connection=await getOdooConnection(tenantId,connectionId);
+  let health;
+  try {
+    const connector=new OdooConnector({
+      baseUrl:connection.base_url,
+      database:connection.provider_database ?? undefined,
+      apiKey:decryptSecret(connection.encrypted_secret)
+    });
+    health=await connector.health({tenantId,sourceId:connection.source_id});
+  } catch(error) {
+    health={status:"error" as const,checkedAt:new Date().toISOString(),message:error instanceof Error?error.message:"Integration health check failed"};
+  }
+  await withTenant(tenantId,async(db)=>{
+    await db.query({
+      text:"update integration_connections set last_healthcheck_at=$1,last_error=$2,updated_at=now() where id=$3",
+      values:[health.checkedAt,health.status==="error"?health.message:null,connectionId]
+    });
+    await db.query({
+      text:"update inventory_sources set status=$1,updated_at=now() where connection_id=$2",
+      values:[health.status,connectionId]
+    });
+  });
+  return health;
+}
+
+async function listIntegrationLocations(tenantId:TenantId,connectionId:string) {
+  assertUuid(connectionId,"connectionId");
+  return withTenant(tenantId,async(db)=>{
+    const result=await db.query({
+      text:"select id,external_location_id,parent_external_location_id,name,complete_name,usage,active,synced_at from integration_locations where connection_id=$1 order by complete_name nulls last,name",
+      values:[connectionId]
+    });
+    return result.rows;
+  });
+}
+
+async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
+  const connection=await getOdooConnection(tenantId,connectionId);
+  const sourceId=connection.source_id as string;
+  const connector=new OdooConnector({
+    baseUrl:connection.base_url,
+    database:connection.provider_database ?? undefined,
+    apiKey:decryptSecret(connection.encrypted_secret)
+  });
+
+  await withTenant(tenantId,async(db)=>{
+    await db.query({text:"update inventory_sources set status='syncing',updated_at=now() where id=$1",values:[sourceId]});
+    await db.query({text:"update integration_connections set last_error=null,updated_at=now() where id=$1",values:[connectionId]});
+  });
+
+  try {
+    const products=await connector.listProducts({tenantId,sourceId});
+    const locations=await connector.listLocations({tenantId,sourceId});
+    const stock=await connector.listStock({tenantId,sourceId});
+
+    const result=await withTenant(tenantId,async(db)=>{
+      const mappingsResult=await db.query({
+        text:"select external_product_id,product_id from integration_product_mappings where source_id=$1",
+        values:[sourceId]
+      });
+      const productMap=new Map<string,string>(mappingsResult.rows.map((row)=>[String(row.external_product_id),String(row.product_id)]));
+      let productsCreated=0,productsUpdated=0,stockRows=0,stockSkipped=0,locationsUpserted=0;
+
+      for(const product of products){
+        let productId=productMap.get(product.externalProductId);
+        if(productId){
+          const updated=await db.query({
+            text:"update products set sku=$1,name=$2,barcode=$3,category=$4,image_url=$5,status='active',updated_at=now() where id=$6 returning id",
+            values:[product.sku,product.name,product.barcode,product.category,product.imageUrl,productId]
+          });
+          if(!updated.rows[0]) productId=undefined;
+        }
+        if(!productId){
+          const upsert=await db.query({
+            text:"insert into products (tenant_id,sku,name,barcode,category,image_url) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5) on conflict (tenant_id,sku) do update set name=excluded.name,barcode=excluded.barcode,category=excluded.category,image_url=excluded.image_url,status='active',updated_at=now() returning id,xmin",
+            values:[product.sku,product.name,product.barcode,product.category,product.imageUrl]
+          });
+          productId=String(upsert.rows[0].id);
+          productsUpdated++;
+          if(String(upsert.rows[0].xmin)==="0") productsCreated++;
+          await db.query({
+            text:"insert into integration_product_mappings (tenant_id,source_id,external_product_id,product_id) values (current_setting('app.tenant_id')::uuid,$1,$2,$3) on conflict (tenant_id,source_id,external_product_id) do update set product_id=excluded.product_id,updated_at=now()",
+            values:[sourceId,product.externalProductId,productId]
+          });
+          productMap.set(product.externalProductId,productId);
+        }
+      }
+
+      for(const location of locations){
+        await db.query({
+          text:"insert into integration_locations (tenant_id,connection_id,external_location_id,name,raw_metadata,synced_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4::jsonb,now()) on conflict (tenant_id,connection_id,external_location_id) do update set name=excluded.name,raw_metadata=excluded.raw_metadata,active=true,synced_at=excluded.synced_at",
+          values:[connectionId,location.externalLocationId,location.name,JSON.stringify(location)]
+        });
+        locationsUpserted++;
+      }
+
+      for(const item of stock){
+        const productId=productMap.get(item.externalProductId);
+        if(!productId||item.externalLocationId===null){stockSkipped++;continue;}
+        await db.query({
+          text:"insert into inventory_balances (tenant_id,source_id,product_id,external_location_ref,quantity,observed_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4::numeric, $5) on conflict (tenant_id,source_id,product_id,external_location_ref) do update set quantity=excluded.quantity,observed_at=excluded.observed_at,updated_at=now(),deleted_at=null",
+          values:[sourceId,productId,item.externalLocationId,item.quantity,item.updatedAt]
+        });
+        stockRows++;
+      }
+
+      await db.query({text:"update inventory_sources set status='connected',last_synced_at=now(),updated_at=now() where id=$1",values:[sourceId]});
+      await db.query({text:"update integration_connections set last_healthcheck_at=now(),last_error=null,updated_at=now() where id=$1",values:[connectionId]});
+      await db.query({
+        text:"insert into audit_events (tenant_id,action,entity_type,entity_id,metadata) values (current_setting('app.tenant_id')::uuid,'sync','integration_connection',$1,$2::jsonb)",
+        values:[connectionId,JSON.stringify({provider:"odoo",sourceId,products:products.length,productsCreated,productsUpdated,locationsUpserted,stockRows,stockSkipped})]
+      });
+
+      return {products:products.length,productsCreated,productsUpdated,locationsUpserted,stockRows,stockSkipped};
+    });
+    return result;
+  } catch(error) {
+    const message=error instanceof Error?error.message:"Odoo sync failed";
+    await withTenant(tenantId,async(db)=>{
+      await db.query({text:"update inventory_sources set status='error',updated_at=now() where id=$1",values:[sourceId]});
+      await db.query({text:"update integration_connections set last_error=$1,updated_at=now() where id=$2",values:[message.slice(0,1000),connectionId]});
+    });
+    throw new ApiError(502,"INTEGRATION_SYNC_FAILED","Odoo synchronization failed");
+  }
+}
+
 async function createInventorySource(tenantId:TenantId,body:Record<string,unknown>) {
   const providerType=text(body.providerType,"providerType",60);
   const name=text(body.name,"name",160);
@@ -451,9 +641,17 @@ async function route(req:IncomingMessage,res:ServerResponse){
   if (url.pathname==="/api/spatial" && method==="POST") return sendJson(res,201,await createSpatial(tenantId,await readJson(req)));
   if (url.pathname==="/api/products" && method==="GET") return sendJson(res,200,await listProducts(tenantId,url.searchParams.get("q")));
   if (url.pathname==="/api/products" && method==="POST") return sendJson(res,201,await createProduct(tenantId,await readJson(req)));
+  if (url.pathname==="/api/integrations" && method==="GET") return sendJson(res,200,await listIntegrations(tenantId));
+  if (url.pathname==="/api/integrations/odoo" && method==="POST") return sendJson(res,201,await createOdooConnection(tenantId,await readJson(req)));
   if (url.pathname==="/api/inventory-sources" && method==="GET") return sendJson(res,200,await listInventorySources(tenantId));
   if (url.pathname==="/api/inventory-sources" && method==="POST") return sendJson(res,201,await createInventorySource(tenantId,await readJson(req)));
   if (url.pathname==="/api/inventory-location-mappings" && method==="POST") return sendJson(res,201,await createInventoryMapping(tenantId,await readJson(req)));
+  const odooHealthMatch=url.pathname.match(/^\\/api\\/integrations\\/odoo\\/([0-9a-f-]+)\\/health$/i);
+  if (odooHealthMatch && method==="POST") return sendJson(res,200,await odooHealth(tenantId,odooHealthMatch[1]));
+  const odooSyncMatch=url.pathname.match(/^\\/api\\/integrations\\/odoo\\/([0-9a-f-]+)\\/sync$/i);
+  if (odooSyncMatch && method==="POST") return sendJson(res,200,await syncOdooConnection(tenantId,odooSyncMatch[1]));
+  const integrationLocationsMatch=url.pathname.match(/^\\/api\\/integrations\\/([0-9a-f-]+)\\/locations$/i);
+  if (integrationLocationsMatch && method==="GET") return sendJson(res,200,await listIntegrationLocations(tenantId,integrationLocationsMatch[1]));
   if (url.pathname==="/api/placements" && method==="POST") return sendJson(res,201,await createPlacement(tenantId,await readJson(req)));
   if (url.pathname==="/api/import/products" && method==="POST") return sendJson(res,200,await importProducts(tenantId,await readJson(req)));
 

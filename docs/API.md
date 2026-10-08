@@ -1,83 +1,48 @@
 # API
 
-The current API is intentionally small and domain-oriented.
+The API is domain-oriented and tenant-scoped.
 
-## Health
+## Core
 
-GET /health
+- GET /health
+- GET /api/overview
+- GET /api/spatial?q=...
+- GET /api/spatial/:id
+- GET /api/spatial/:id/products
+- POST /api/spatial
+- PATCH /api/spatial/:id
+- DELETE /api/spatial/:id
+- GET /api/products?q=...
+- POST /api/products
+- GET /api/products/:id/locations
+- POST /api/placements
+- PATCH /api/placements/:id
+- DELETE /api/placements/:id
 
-Returns database connectivity without exposing tenant data.
+## Inventory
 
-## Spatial
+- GET /api/inventory-sources
+- POST /api/inventory-sources
+- POST /api/inventory-location-mappings
+- POST /api/import/products
 
-GET /api/spatial?q=...
+## Odoo
 
-List active spatial nodes, optionally by name or code.
+The first real provider connector is Odoo 19 JSON-2.
 
-GET /api/spatial/:id
+- GET /api/integrations
+- POST /api/integrations/odoo
+- POST /api/integrations/odoo/:connectionId/health
+- POST /api/integrations/odoo/:connectionId/sync
+- GET /api/integrations/:connectionId/locations
 
-Fetch one location.
+The Odoo API key is encrypted server-side immediately and is never returned to the browser.
 
-GET /api/spatial/:id/products
+Sync imports:
+- active Odoo products,
+- internal stock locations,
+- stock quantities from stock.quant.
 
-List products currently placed at a location.
+Provider product IDs are stored in tenant-scoped integration_product_mappings. Stock is written only to inventory_balances. It is not copied into products or placements.
 
-POST /api/spatial
-
-Create a location. Coordinates are optional; omitting them means not mapped yet.
-
-PATCH /api/spatial/:id
-
-Update name, code, coordinates, dimensions, rotation, or metadata.
-
-DELETE /api/spatial/:id
-
-Soft-archive a node only when it has no active children or placements.
-
-## Products
-
-GET /api/products?q=...
-
-Search by name, SKU, barcode, or category.
-
-POST /api/products
-
-Create a catalog product.
-
-GET /api/products/:id/locations
-
-Return every mapped location plus inventory observations available through location mappings.
-
-## Placements
-
-POST /api/placements
-
-Create a product placement. No quantity is accepted.
-
-PATCH /api/placements/:id
-
-Move a placement and record placement_history plus an audit row in the same transaction.
-
-DELETE /api/placements/:id
-
-Soft-remove a placement and preserve its history.
-
-## Inventory sources
-
-GET /api/inventory-sources
-
-List source health metadata.
-
-POST /api/inventory-sources
-
-Register a source record. Registration starts as disconnected; it does not pretend a connector is alive.
-
-## Import
-
-POST /api/import/products
-
-Accept up to 5,000 normalized product rows. Quantity is accepted only when an authoritative source is explicitly supplied and each quantity row includes a locationCode.
-
-## Authentication note
-
-Development uses a server-side fixed tenant context. Production authentication is intentionally not faked and returns AUTH_REQUIRED until a verified adapter is installed.
+An Odoo location is not assumed to be a spatial location. It must be explicitly mapped to an internal spatial node before the UI can label its quantity as spatially verified.

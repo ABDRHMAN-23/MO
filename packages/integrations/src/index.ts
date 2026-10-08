@@ -22,6 +22,9 @@ export interface CanonicalLocation {
   name:string;
   code:string|null;
   type:string;
+  parentExternalLocationId?:string|null;
+  completeName?:string|null;
+  usage?:string|null;
 }
 export interface CanonicalEvent {
   externalSource:string;
@@ -53,5 +56,7 @@ export interface InventoryConnector {
   listLocations?(context:ConnectorContext):Promise<CanonicalLocation[]>;
 }
 export function assertFiniteQuantity(value:number):void {
-  if (!Number.isFinite(value)||value<0) throw new Error("Connector returned an invalid quantity");
+  if(!Number.isFinite(value)||value<0) throw new Error("Connector returned an invalid quantity");
 }
+export { OdooConnector } from "./odoo";
+export type { OdooConnectorConfig } from "./odoo";
