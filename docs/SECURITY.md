@@ -53,3 +53,9 @@ Future generic connector/upload endpoints must restrict outbound hosts, enforce 
 Odoo API keys are encrypted with AES-256-GCM before database persistence using INTEGRATION_ENCRYPTION_KEY. The ciphertext, IV, authentication tag, and version are stored together; the plaintext key never reaches the browser or audit log.
 
 Production should source INTEGRATION_ENCRYPTION_KEY from a managed secret/KMS facility and rotate it through a versioned migration path. Odoo 19 API keys have provider-side expiration and rotation rules; the connector uses them only server-side.
+
+## RBAC enforcement
+
+The API enforces permissions server-side. Viewer is read-only; operator can manage catalog, spatial layout, placements, and imports; admin and owner can also manage integrations. The browser cannot select its tenant or role.
+
+`DEV_ROLE` exists only for local/non-production development. Production refuses requests until a verified auth adapter derives tenant, user, and role from the authenticated principal.

@@ -7,7 +7,7 @@ import {
   type SpatialNodeType,
   type TenantId
 } from "@spatial/domain";
-import { resolveTenant } from "./auth";
+import { requirePermission, resolveAuth } from "./auth";
 import { decryptSecret, encryptSecret } from "./integration-crypto";
 import { healthcheck, withTenant } from "./db";
 import {
@@ -708,28 +708,29 @@ async function route(req:IncomingMessage,res:ServerResponse){
   }
   const limited=limiter.check(clientKey(req));
   if (!limited.allowed){sendJson(res,429,{error:{code:"RATE_LIMITED",message:"Too many requests"}},{"retry-after":String(limited.retryAfterSeconds)});return;}
-  const tenantId=resolveTenant(req);
+  const auth=resolveAuth(req);
+  const tenantId=auth.tenantId;
 
   if (url.pathname==="/api/overview" && method==="GET") return sendJson(res,200,await overview(tenantId));
   if (url.pathname==="/api/spatial" && method==="GET") return sendJson(res,200,await listSpatial(tenantId,url.searchParams.get("q")));
-  if (url.pathname==="/api/spatial" && method==="POST") return sendJson(res,201,await createSpatial(tenantId,await readJson(req)));
+  if (url.pathname==="/api/spatial" && method==="POST"){requirePermission(auth,"manage_spatial");return sendJson(res,201,await createSpatial(tenantId,await readJson(req)));}
   if (url.pathname==="/api/products" && method==="GET") return sendJson(res,200,await listProducts(tenantId,url.searchParams.get("q")));
-  if (url.pathname==="/api/products" && method==="POST") return sendJson(res,201,await createProduct(tenantId,await readJson(req)));
+  if (url.pathname==="/api/products" && method==="POST"){requirePermission(auth,"manage_products");return sendJson(res,201,await createProduct(tenantId,await readJson(req)));}
   if (url.pathname==="/api/integrations" && method==="GET") return sendJson(res,200,await listIntegrations(tenantId));
   const syncRunsMatch=url.pathname.match(/^\/api\/integrations\/([0-9a-f-]+)\/sync-runs$/i);
   if (syncRunsMatch && method==="GET") return sendJson(res,200,await listSyncRuns(tenantId,syncRunsMatch[1]));
-  if (url.pathname==="/api/integrations/odoo" && method==="POST") return sendJson(res,201,await createOdooConnection(tenantId,await readJson(req)));
+  if (url.pathname==="/api/integrations/odoo" && method==="POST"){requirePermission(auth,"manage_integrations");return sendJson(res,201,await createOdooConnection(tenantId,await readJson(req)));}
   if (url.pathname==="/api/inventory-sources" && method==="GET") return sendJson(res,200,await listInventorySources(tenantId));
-  if (url.pathname==="/api/inventory-sources" && method==="POST") return sendJson(res,201,await createInventorySource(tenantId,await readJson(req)));
-  if (url.pathname==="/api/inventory-location-mappings" && method==="POST") return sendJson(res,201,await createInventoryMapping(tenantId,await readJson(req)));
+  if (url.pathname==="/api/inventory-sources" && method==="POST"){requirePermission(auth,"manage_integrations");return sendJson(res,201,await createInventorySource(tenantId,await readJson(req)));}
+  if (url.pathname==="/api/inventory-location-mappings" && method==="POST"){requirePermission(auth,"manage_integrations");return sendJson(res,201,await createInventoryMapping(tenantId,await readJson(req)));}
   const odooHealthMatch=url.pathname.match(/^\/api\/integrations\/odoo\/([0-9a-f-]+)\/health$/i);
-  if (odooHealthMatch && method==="POST") return sendJson(res,200,await odooHealth(tenantId,odooHealthMatch[1]));
+  if (odooHealthMatch && method==="POST"){requirePermission(auth,"manage_integrations");return sendJson(res,200,await odooHealth(tenantId,odooHealthMatch[1]));}
   const odooSyncMatch=url.pathname.match(/^\/api\/integrations\/odoo\/([0-9a-f-]+)\/sync$/i);
-  if (odooSyncMatch && method==="POST") return sendJson(res,200,await syncOdooConnection(tenantId,odooSyncMatch[1]));
+  if (odooSyncMatch && method==="POST"){requirePermission(auth,"manage_integrations");return sendJson(res,200,await syncOdooConnection(tenantId,odooSyncMatch[1]));}
   const integrationLocationsMatch=url.pathname.match(/^\/api\/integrations\/([0-9a-f-]+)\/locations$/i);
   if (integrationLocationsMatch && method==="GET") return sendJson(res,200,await listIntegrationLocations(tenantId,integrationLocationsMatch[1]));
-  if (url.pathname==="/api/placements" && method==="POST") return sendJson(res,201,await createPlacement(tenantId,await readJson(req)));
-  if (url.pathname==="/api/import/products" && method==="POST") return sendJson(res,200,await importProducts(tenantId,await readJson(req)));
+  if (url.pathname==="/api/placements" && method==="POST"){requirePermission(auth,"manage_placements");return sendJson(res,201,await createPlacement(tenantId,await readJson(req)));}
+  if (url.pathname==="/api/import/products" && method==="POST"){requirePermission(auth,"import_inventory");return sendJson(res,200,await importProducts(tenantId,await readJson(req)));}
 
   const productLocationMatch=url.pathname.match(/^\/api\/products\/([0-9a-f-]+)\/locations$/i);
   if (productLocationMatch && method==="GET") return sendJson(res,200,await productLocations(tenantId,productLocationMatch[1]));
@@ -739,12 +740,12 @@ async function route(req:IncomingMessage,res:ServerResponse){
 
   const spatialMatch=url.pathname.match(/^\/api\/spatial\/([0-9a-f-]+)$/i);
   if (spatialMatch && method==="GET") return sendJson(res,200,await getSpatial(tenantId,spatialMatch[1]));
-  if (spatialMatch && method==="PATCH") return sendJson(res,200,await updateSpatial(tenantId,spatialMatch[1],await readJson(req)));
-  if (spatialMatch && method==="DELETE") return sendJson(res,200,await softDeleteSpatial(tenantId,spatialMatch[1]));
+  if (spatialMatch && method==="PATCH"){requirePermission(auth,"manage_spatial");return sendJson(res,200,await updateSpatial(tenantId,spatialMatch[1],await readJson(req)));}
+  if (spatialMatch && method==="DELETE"){requirePermission(auth,"manage_spatial");return sendJson(res,200,await softDeleteSpatial(tenantId,spatialMatch[1]));}
 
   const placementMatch=url.pathname.match(/^\/api\/placements\/([0-9a-f-]+)$/i);
-  if (placementMatch && method==="PATCH") return sendJson(res,200,await movePlacement(tenantId,placementMatch[1],await readJson(req)));
-  if (placementMatch && method==="DELETE") return sendJson(res,200,await deletePlacement(tenantId,placementMatch[1]));
+  if (placementMatch && method==="PATCH"){requirePermission(auth,"manage_placements");return sendJson(res,200,await movePlacement(tenantId,placementMatch[1],await readJson(req)));}
+  if (placementMatch && method==="DELETE"){requirePermission(auth,"manage_placements");return sendJson(res,200,await deletePlacement(tenantId,placementMatch[1]));}
 
   throw new ApiError(404,"NOT_FOUND","Route not found");
 }
