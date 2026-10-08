@@ -264,7 +264,7 @@ async function productLocations(tenantId:TenantId,productId:string) {
     if (!product.rows[0]) throw new ApiError(404,"NOT_FOUND","Product not found");
     const locations=await db.query({
       text:`select
-        p.id as placement_id,p.product_id,p.spatial_node_id,p.status,p.verified_at,
+        p.id as placement_id,p.product_id,p.spatial_node_id,p.status,p.verified_at,p.updated_at as placement_updated_at,
         s.id as node_id,s.parent_id,s.floor_id,s.node_type as type,s.name,s.code,s.x,s.y,s.z,s.width,s.height,s.depth,s.rotation_x,s.rotation_y,s.rotation_z,s.metadata,
         coalesce(inv.inventory,'[]'::jsonb) as inventory
       from placements p
@@ -289,7 +289,7 @@ async function productLocations(tenantId:TenantId,productId:string) {
     const nodes=allNodes.rows.map((n)=>({...n,tenantId}) as never);
     return locations.rows.map((row)=>({
       product:product.rows[0],
-      placement:{id:row.placement_id,tenantId,productId:row.product_id,spatialNodeId:row.spatial_node_id,status:row.status,verifiedAt:row.verified_at},
+      placement:{id:row.placement_id,tenantId,productId:row.product_id,spatialNodeId:row.spatial_node_id,status:row.status,verifiedAt:row.verified_at,updatedAt:row.placement_updated_at},
       breadcrumb:breadcrumb(nodes,row.node_id),
       inventory:row.inventory
     }));
@@ -316,13 +316,30 @@ async function movePlacement(tenantId:TenantId,placementId:string,body:Record<st
   assertUuid(placementId,"placementId");
   const target=assertUuid(body.spatialNodeId,"spatialNodeId");
   const reason=optionalText(body.reason,"reason",500);
+  const expectedUpdatedAt=optionalText(body.expectedUpdatedAt,"expectedUpdatedAt",64);
   return withTenant(tenantId,async(db)=>{
     const existing=await db.query({text:"select * from placements where id=$1 and deleted_at is null for update",values:[placementId]});
     if (!existing.rows[0]) throw new ApiError(404,"NOT_FOUND","Placement not found");
     const node=await db.query({text:"select id from spatial_nodes where id=$1 and deleted_at is null",values:[target]});
     if (!node.rows[0]) throw new ApiError(404,"NOT_FOUND","Target location not found");
-    if (existing.rows[0].spatial_node_id===target) return existing.rows[0];
-    const updated=await db.query({text:"update placements set spatial_node_id=$1,status='placed',verified_at=now(),updated_at=now() where id=$2 returning id,product_id,spatial_node_id,status,verified_at",values:[target,placementId]});
+    if (existing.rows[0].spatial_node_id===target) {
+      return {
+        id:existing.rows[0].id,
+        product_id:existing.rows[0].product_id,
+        spatial_node_id:existing.rows[0].spatial_node_id,
+        status:existing.rows[0].status,
+        verified_at:existing.rows[0].verified_at,
+        updated_at:existing.rows[0].updated_at
+      };
+    }
+    if (expectedUpdatedAt) {
+      const expectedMs=Date.parse(expectedUpdatedAt);
+      const currentMs=new Date(existing.rows[0].updated_at).getTime();
+      if (!Number.isFinite(expectedMs) || expectedMs!==currentMs) {
+        throw new ApiError(409,"PLACEMENT_CONFLICT","Placement changed while this move was offline; refresh before applying it");
+      }
+    }
+    const updated=await db.query({text:"update placements set spatial_node_id=$1,status='placed',verified_at=now(),updated_at=now() where id=$2 returning id,product_id,spatial_node_id,status,verified_at,updated_at",values:[target,placementId]});
     await db.query({text:"insert into placement_history (tenant_id,placement_id,product_id,old_spatial_node_id,new_spatial_node_id,source,reason) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,'user',coalesce($5,'Moved by user'))",values:[placementId,existing.rows[0].product_id,existing.rows[0].spatial_node_id,target,reason]});
     await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'move','placement',$1,$2::jsonb,$3::jsonb,'{\"source\":\"api\"}')",values:[placementId,JSON.stringify(existing.rows[0]),JSON.stringify(updated.rows[0])]});
     return updated.rows[0];
