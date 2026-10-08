@@ -363,9 +363,19 @@ async function listIntegrations(tenantId:TenantId) {
       text:`select
         c.id,c.provider_type,c.name,c.base_url,c.provider_database,c.enabled,
         c.last_healthcheck_at,c.last_error,
-        s.id as source_id,s.status as source_status,s.is_authoritative,s.last_synced_at
+        s.id as source_id,s.status as source_status,s.is_authoritative,s.last_synced_at,
+        lr.status as latest_sync_status,lr.started_at as latest_sync_started_at,
+        lr.finished_at as latest_sync_finished_at,lr.products_seen as latest_sync_products_seen,
+        lr.stock_rows as latest_sync_stock_rows,lr.error_message as latest_sync_error
       from integration_connections c
       left join inventory_sources s on s.connection_id=c.id
+      left join lateral (
+        select status,started_at,finished_at,products_seen,stock_rows,error_message
+        from integration_sync_runs
+        where integration_id=c.id
+        order by created_at desc
+        limit 1
+      ) lr on true
       order by c.name`
     });
     return result.rows;
@@ -458,9 +468,73 @@ async function listIntegrationLocations(tenantId:TenantId,connectionId:string) {
   });
 }
 
+async function createSyncRun(tenantId:TenantId,connectionId:string,sourceId:string) {
+  return withTenant(tenantId,async(db)=>{
+    await db.query({
+      text:"update integration_sync_runs set status='failed',finished_at=now(),error_code='STALE_RUN_TIMEOUT',error_message='Sync run exceeded 30 minutes',updated_at=now() where integration_id=$1 and status='running' and started_at < now()-interval '30 minutes'",
+      values:[connectionId]
+    });
+    try {
+      const result=await db.query({
+        text:"insert into integration_sync_runs (tenant_id,integration_id,source_id,provider_type,triggered_by,status) values (current_setting('app.tenant_id')::uuid,$1,$2,'odoo','manual','running') returning id,started_at",
+        values:[connectionId,sourceId]
+      });
+      return result.rows[0] as {id:string;started_at:string};
+    } catch(error) {
+      const code=typeof error==="object"&&error&&"code" in error ? String((error as {code?:unknown}).code) : "";
+      if(code==="23505") throw new ApiError(409,"SYNC_IN_PROGRESS","A synchronization is already running for this integration");
+      throw error;
+    }
+  });
+}
+
+async function finishSyncRun(tenantId:TenantId,runId:string,patch:{
+  status:"succeeded"|"failed";
+  productsSeen?:number;
+  productsCreated?:number;
+  productsUpdated?:number;
+  locationsSeen?:number;
+  locationsUpserted?:number;
+  stockRows?:number;
+  stockSkipped?:number;
+  errorCode?:string|null;
+  errorMessage?:string|null;
+}) {
+  return withTenant(tenantId,async(db)=>{
+    await db.query({
+      text:"update integration_sync_runs set status=$1,finished_at=now(),products_seen=$2,products_created=$3,products_updated=$4,locations_seen=$5,locations_upserted=$6,stock_rows=$7,stock_skipped=$8,error_code=$9,error_message=$10,updated_at=now() where id=$11",
+      values:[
+        patch.status,
+        patch.productsSeen ?? 0,
+        patch.productsCreated ?? 0,
+        patch.productsUpdated ?? 0,
+        patch.locationsSeen ?? 0,
+        patch.locationsUpserted ?? 0,
+        patch.stockRows ?? 0,
+        patch.stockSkipped ?? 0,
+        patch.errorCode ?? null,
+        patch.errorMessage?.slice(0,1000) ?? null,
+        runId
+      ]
+    });
+  });
+}
+
+async function listSyncRuns(tenantId:TenantId,connectionId:string) {
+  assertUuid(connectionId,"connectionId");
+  return withTenant(tenantId,async(db)=>{
+    const result=await db.query({
+      text:"select id,status,attempt,triggered_by,started_at,finished_at,products_seen,products_created,products_updated,locations_seen,locations_upserted,stock_rows,stock_skipped,error_code,error_message,created_at from integration_sync_runs where integration_id=$1 order by created_at desc limit 20",
+      values:[connectionId]
+    });
+    return result.rows;
+  });
+}
+
 async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
   const connection=await getOdooConnection(tenantId,connectionId);
   const sourceId=connection.source_id as string;
+  const run=await createSyncRun(tenantId,connectionId,sourceId);
   const connector=new OdooConnector({
     baseUrl:connection.base_url,
     database:connection.provider_database ?? undefined,
@@ -492,7 +566,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
             text:"update products set sku=$1,name=$2,barcode=$3,category=$4,image_url=$5,search_text_normalized=app.normalize_search_text($2 || ' ' || $1 || ' ' || coalesce($3,'') || ' ' || coalesce($4,'') || ' ' || coalesce($5,'')),status='active',updated_at=now() where id=$6 returning id",
             values:[product.sku,product.name,product.barcode,product.category,product.imageUrl,productId]
           });
-          if(!updated.rows[0]) productId=undefined;
+          if(!updated.rows[0])productId=undefined;
         }
         if(!productId){
           const upsert=await db.query({
@@ -501,7 +575,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
           });
           productId=String(upsert.rows[0].id);
           productsUpdated++;
-          if(String(upsert.rows[0].xmin)==="0") productsCreated++;
+          if(String(upsert.rows[0].xmin)==="0")productsCreated++;
           await db.query({
             text:"insert into integration_product_mappings (tenant_id,source_id,external_product_id,product_id) values (current_setting('app.tenant_id')::uuid,$1,$2,$3) on conflict (tenant_id,source_id,external_product_id) do update set product_id=excluded.product_id,updated_at=now()",
             values:[sourceId,product.externalProductId,productId]
@@ -532,7 +606,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
         const productId=productMap.get(item.externalProductId);
         if(!productId||item.externalLocationId===null){stockSkipped++;continue;}
         await db.query({
-          text:"insert into inventory_balances (tenant_id,source_id,product_id,external_location_ref,quantity,observed_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4::numeric, $5) on conflict (tenant_id,source_id,product_id,external_location_ref) do update set quantity=excluded.quantity,observed_at=excluded.observed_at,updated_at=now(),deleted_at=null",
+          text:"insert into inventory_balances (tenant_id,source_id,product_id,external_location_ref,quantity,observed_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4::numeric,$5) on conflict (tenant_id,source_id,product_id,external_location_ref) do update set quantity=excluded.quantity,observed_at=excluded.observed_at,updated_at=now(),deleted_at=null",
           values:[sourceId,productId,item.externalLocationId,item.quantity,item.updatedAt]
         });
         stockRows++;
@@ -542,10 +616,15 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
       await db.query({text:"update integration_connections set last_healthcheck_at=now(),last_error=null,updated_at=now() where id=$1",values:[connectionId]});
       await db.query({
         text:"insert into audit_events (tenant_id,action,entity_type,entity_id,metadata) values (current_setting('app.tenant_id')::uuid,'sync','integration_connection',$1,$2::jsonb)",
-        values:[connectionId,JSON.stringify({provider:"odoo",sourceId,products:products.length,productsCreated,productsUpdated,locationsUpserted,stockRows,stockSkipped})]
+        values:[connectionId,JSON.stringify({provider:"odoo",sourceId,products:products.length,productsCreated,productsUpdated,locationsUpserted,stockRows,stockSkipped,runId:run.id})]
       });
 
-      return {products:products.length,productsCreated,productsUpdated,locationsUpserted,stockRows,stockSkipped};
+      await db.query({
+        text:"update integration_sync_runs set status='succeeded',finished_at=now(),products_seen=$1,products_created=$2,products_updated=$3,locations_seen=$4,locations_upserted=$5,stock_rows=$6,stock_skipped=$7,updated_at=now() where id=$8",
+        values:[products.length,productsCreated,productsUpdated,locations.length,locationsUpserted,stockRows,stockSkipped,run.id]
+      });
+
+      return {products:products.length,productsCreated,productsUpdated,locationsUpserted,stockRows,stockSkipped,syncRunId:run.id};
     });
     return result;
   } catch(error) {
@@ -553,6 +632,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
     await withTenant(tenantId,async(db)=>{
       await db.query({text:"update inventory_sources set status='error',updated_at=now() where id=$1",values:[sourceId]});
       await db.query({text:"update integration_connections set last_error=$1,updated_at=now() where id=$2",values:[message.slice(0,1000),connectionId]});
+      await db.query({text:"update integration_sync_runs set status='failed',finished_at=now(),error_code='INTEGRATION_SYNC_FAILED',error_message=$1,updated_at=now() where id=$2",values:[message.slice(0,1000),run.id]});
     });
     throw new ApiError(502,"INTEGRATION_SYNC_FAILED","Odoo synchronization failed");
   }
@@ -668,6 +748,8 @@ async function route(req:IncomingMessage,res:ServerResponse){
   if (url.pathname==="/api/products" && method==="GET") return sendJson(res,200,await listProducts(tenantId,url.searchParams.get("q")));
   if (url.pathname==="/api/products" && method==="POST") return sendJson(res,201,await createProduct(tenantId,await readJson(req)));
   if (url.pathname==="/api/integrations" && method==="GET") return sendJson(res,200,await listIntegrations(tenantId));
+  const syncRunsMatch=url.pathname.match(/^\/api\/integrations\/([0-9a-f-]+)\/sync-runs$/i);
+  if (syncRunsMatch && method==="GET") return sendJson(res,200,await listSyncRuns(tenantId,syncRunsMatch[1]));
   if (url.pathname==="/api/integrations/odoo" && method==="POST") return sendJson(res,201,await createOdooConnection(tenantId,await readJson(req)));
   if (url.pathname==="/api/inventory-sources" && method==="GET") return sendJson(res,200,await listInventorySources(tenantId));
   if (url.pathname==="/api/inventory-sources" && method==="POST") return sendJson(res,201,await createInventorySource(tenantId,await readJson(req)));
