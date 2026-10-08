@@ -113,6 +113,19 @@ begin
   exception when insufficient_privilege then
     null;
   end;
+
+  begin
+    insert into integration_sync_runs
+      (tenant_id,integration_id,source_id,provider_type,status)
+    select '22222222-2222-4222-8222-222222222222',c.id,s.id,'odoo','running'
+    from integration_connections c
+    join inventory_sources s on s.connection_id=c.id
+    where c.name='A Odoo';
+    raise exception 'cross-tenant sync run insert unexpectedly succeeded';
+  exception
+    when insufficient_privilege then null;
+    when foreign_key_violation then null;
+  end;
 end
 $cross_insert$;
 
@@ -136,6 +149,19 @@ insert into integration_connections
   (tenant_id,provider_type,name,base_url,encrypted_secret)
 values
   (app.current_tenant_id(),'odoo','B Odoo','https://odoo.example.test','test-ciphertext');
+
+insert into inventory_sources
+  (tenant_id,provider_type,name,status,is_authoritative,connection_id)
+select app.current_tenant_id(),'odoo','B Odoo Source','connected',true,c.id
+from integration_connections c
+where c.name='B Odoo';
+
+insert into integration_sync_runs
+  (tenant_id,integration_id,source_id,provider_type,status)
+select app.current_tenant_id(),c.id,s.id,'odoo','succeeded'
+from integration_connections c
+join inventory_sources s on s.connection_id=c.id
+where c.name='B Odoo';
 
 do $tenant_b$
 begin
