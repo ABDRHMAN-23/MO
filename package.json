@@ -1,0 +1,12 @@
+{
+  "name": "spatial-inventory-platform",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@10.17.1",
+  "scripts": {
+    "dev": "pnpm --filter @spatial/web dev",
+    "build": "pnpm --filter @spatial/web build",
+    "typecheck": "pnpm --filter @spatial/web typecheck",
+    "lint": "pnpm --filter @spatial/web lint"
+  }
+}
