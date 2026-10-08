@@ -111,7 +111,7 @@ async function listSpatial(tenantId:TenantId,search:string|null) {
   return withTenant(tenantId,async(db)=>{
     const query=search?.trim() ? likePattern(normalizeSearchInput(search)) : null;
     const result=query
-      ? await db.query({text:"select id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at from spatial_nodes where deleted_at is null and (lower(name) ilike $1 or lower(coalesce(code,'')) ilike $1) order by sort_order,name",values:[query]})
+      ? await db.query({text:"select id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at from spatial_nodes where deleted_at is null and search_text_normalized ilike '%' || app.normalize_search_text($1) || '%' order by sort_order,name",values:[query]})
       : await db.query("select id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at from spatial_nodes where deleted_at is null order by sort_order,name");
     return result.rows;
   });
@@ -160,7 +160,7 @@ async function createSpatial(tenantId:TenantId,body:Record<string,unknown>) {
       floorId=parent.rows[0].node_type==="floor" ? parent.rows[0].id : parent.rows[0].floor_id;
     }
     const inserted=await db.query({
-      text:"insert into spatial_nodes (tenant_id,parent_id,node_type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) returning id",
+      text:"insert into spatial_nodes (tenant_id,parent_id,node_type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,search_text_normalized) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,app.normalize_search_text($3 || ' ' || coalesce($4,''))) returning id",
       values:[parentId,type,name,code,x,y,z,width,height,depth,rotationX,rotationY,rotationZ,JSON.stringify(metadata)]
     });
     const id=inserted.rows[0].id as string;
@@ -189,13 +189,24 @@ async function updateSpatial(tenantId:TenantId,id:string,body:Record<string,unkn
   const values:unknown[]=[];
   const assignments=Object.entries(patch).map(([key,value],i)=>{
     values.push(key==="metadata" ? JSON.stringify(value) : value);
-    return `${columnMap[key]}=$${i+1}${key==="metadata" ? "::jsonb":""}`;
+    return `${columnMap[key]}=${i+1}${key==="metadata" ? "::jsonb":""}`;
   });
-  values.push(id);
   return withTenant(tenantId,async(db)=>{
     const before=await db.query({text:"select * from spatial_nodes where id=$1 and deleted_at is null for update",values:[id]});
     if (!before.rows[0]) throw new ApiError(404,"NOT_FOUND","Spatial node not found");
-    const updated=await db.query({text:`update spatial_nodes set ${assignments.join(",")},updated_at=now() where id=$${values.length} and deleted_at is null returning id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at`,values});
+    const oldRow=before.rows[0];
+
+    if (patch.name !== undefined || patch.code !== undefined) {
+      const searchSource=`${patch.name ?? String(oldRow.name)} ${patch.code ?? (oldRow.code ?? "")}`;
+      values.push(searchSource);
+      assignments.push(`search_text_normalized=app.normalize_search_text(${values.length})`);
+    }
+
+    values.push(id);
+    const updated=await db.query({
+      text:`update spatial_nodes set ${assignments.join(",")},updated_at=now() where id=${values.length} and deleted_at is null returning id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at`,
+      values
+    });
     await db.query({
       text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'update','spatial_node',$1,$2::jsonb,$3::jsonb,'{\"source\":\"api\"}')",
       values:[id,JSON.stringify(before.rows[0]),JSON.stringify(updated.rows[0])]
@@ -226,7 +237,7 @@ async function listProducts(tenantId:TenantId,query:string|null) {
   return withTenant(tenantId,async(db)=>{
     const normalized=query?.trim() ? normalizeSearchInput(query) : null;
     const result=normalized
-      ? await db.query({text:"select id,sku,barcode,name,category,image_url,status from products where status <> 'archived' and (lower(name) ilike $1 or lower(sku) ilike $1 or lower(coalesce(barcode,'')) ilike $1 or lower(coalesce(category,'')) ilike $1) order by name limit 50",values:[likePattern(normalized)]})
+      ? await db.query({text:"select id,sku,barcode,name,category,image_url,status from products where status <> 'archived' and search_text_normalized ilike '%' || app.normalize_search_text($1) || '%' order by name limit 50",values:[likePattern(normalized)]})
       : await db.query("select id,sku,barcode,name,category,image_url,status from products where status <> 'archived' order by name limit 100");
     return result.rows;
   });
@@ -240,7 +251,7 @@ async function createProduct(tenantId:TenantId,body:Record<string,unknown>) {
   const imageUrl=optionalText(body.imageUrl,"imageUrl",2048);
   if (imageUrl && !/^https:\/\//i.test(imageUrl)) throw new ApiError(400,"INVALID_INPUT","imageUrl must use HTTPS");
   return withTenant(tenantId,async(db)=>{
-    const result=await db.query({text:"insert into products (tenant_id,sku,name,barcode,category,image_url) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5) returning id,sku,barcode,name,category,image_url,status",values:[sku,name,barcode,category,imageUrl]});
+    const result=await db.query({text:"insert into products (tenant_id,sku,name,barcode,category,image_url,search_text_normalized) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5,app.normalize_search_text($2 || ' ' || $1 || ' ' || coalesce($3,'') || ' ' || coalesce($4,'') || ' ' || coalesce($5,''))) returning id,sku,barcode,name,category,image_url,status",values:[sku,name,barcode,category,imageUrl]});
     await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','product',$1,$2::jsonb,'{\"source\":\"api\"}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
     return result.rows[0];
   });
@@ -485,7 +496,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
         }
         if(!productId){
           const upsert=await db.query({
-            text:"insert into products (tenant_id,sku,name,barcode,category,image_url) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5) on conflict (tenant_id,sku) do update set name=excluded.name,barcode=excluded.barcode,category=excluded.category,image_url=excluded.image_url,status='active',updated_at=now() returning id,xmin",
+            text:"insert into products (tenant_id,sku,name,barcode,category,image_url,search_text_normalized) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5,app.normalize_search_text($2 || ' ' || $1 || ' ' || coalesce($3,'') || ' ' || coalesce($4,'') || ' ' || coalesce($5,''))) on conflict (tenant_id,sku) do update set name=excluded.name,barcode=excluded.barcode,category=excluded.category,image_url=excluded.image_url,search_text_normalized=excluded.search_text_normalized,status='active',updated_at=now() returning id,xmin",
             values:[product.sku,product.name,product.barcode,product.category,product.imageUrl]
           });
           productId=String(upsert.rows[0].id);
