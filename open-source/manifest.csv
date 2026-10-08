@@ -1,0 +1,11 @@
+name,source,version_or_ref,license,use_in_project,notes
+openPlan3D,GitHub,review-before-adoption,review,reference,3D planning reference
+blueprint3d-modern,GitHub,review-before-adoption,review,reference,3D floor-plan reference
+react-three-fiber,npm/GitHub,pinned-at-install-time,MIT,dependency,3D renderer
+drei,npm/GitHub,pinned-at-install-time,MIT,dependency,Three.js helpers
+WarehouseDigitalTwin,GitHub,review-before-adoption,review,reference,warehouse spatial reference
+ZXing Browser,npm/GitHub,pinned-at-install-time,Apache-2.0,planned,barcode scanning
+pgvector,PostgreSQL/GitHub,pinned-at-install-time,PostgreSQL,planned,semantic retrieval
+GroundingDINO,GitHub,review-before-adoption,Apache-2.0,planned,vision phase
+SAM 2,GitHub,review-before-adoption,Apache-2.0,planned,vision phase
+Faster-Whisper,GitHub,review-before-adoption,MIT,planned,voice phase
