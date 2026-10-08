@@ -1,11 +1,51 @@
-name,source,version_or_ref,license,use_in_project,notes
-openPlan3D,GitHub,review-before-adoption,review,reference,3D planning reference
-blueprint3d-modern,GitHub,review-before-adoption,review,reference,3D floor-plan reference
-react-three-fiber,npm/GitHub,pinned-at-install-time,MIT,dependency,3D renderer
-drei,npm/GitHub,pinned-at-install-time,MIT,dependency,Three.js helpers
-WarehouseDigitalTwin,GitHub,review-before-adoption,review,reference,warehouse spatial reference
-ZXing Browser,npm/GitHub,pinned-at-install-time,Apache-2.0,planned,barcode scanning
-pgvector,PostgreSQL/GitHub,pinned-at-install-time,PostgreSQL,planned,semantic retrieval
-GroundingDINO,GitHub,review-before-adoption,Apache-2.0,planned,vision phase
-SAM 2,GitHub,review-before-adoption,Apache-2.0,planned,vision phase
-Faster-Whisper,GitHub,review-before-adoption,MIT,planned,voice phase
+name,source,version_or_ref,license_status,use_in_project,notes
+react,https://github.com/facebook/react,19.3.0,MIT-verified,direct dependency,UI runtime
+react-dom,https://github.com/facebook/react,19.3.0,MIT-verified,direct dependency,DOM renderer
+three,https://github.com/mrdoob/three.js,r186,MIT-verified,direct dependency,3D runtime
+react-three-fiber,https://github.com/pmndrs/react-three-fiber,9.8.1,MIT-verified,direct dependency,React Three.js bridge
+drei,https://github.com/pmndrs/drei,10.7.9,MIT-verified,direct dependency,Three.js helpers
+@zxing/browser,https://github.com/zxing-js/browser,0.2.1,MIT-verified,direct dependency,barcode scanning
+@neondatabase/serverless,https://github.com/neondatabase/serverless,1.2.0,MIT-verified,direct dependency,Neon/PostgreSQL transport
+vite,https://github.com/vitejs/vite,8.3.1,MIT-verified,build tool,web build
+@vitejs/plugin-react,https://github.com/vitejs/vite-plugin-react,6.1.2,MIT-verified,build tool,React transform
+typescript,https://github.com/microsoft/TypeScript,7.0.2,Apache-2.0-verified,build tool,static type checking
+vitest,https://github.com/vitest-dev/vitest,5.0.3,MIT-verified,test tool,domain tests
+tsx,https://github.com/privatenumber/tsx,4.23.15,MIT-verified,dev tool,API dev runner
+openPlan3D,https://github.com/laanlabs/openPlan3D,review-before-adoption,review-required,reference,3D planning patterns
+blueprint3d-modern,https://github.com/charmlinn/blueprint3d-modern,review-before-adoption,review-required,reference,2D/3D planning patterns
+react-three-fiber,https://github.com/pmndrs/react-three-fiber,9.8.1,MIT-verified,primary stack,already selected direct dependency
+drei,https://github.com/pmndrs/drei,10.7.9,MIT-verified,primary stack,already selected direct dependency
+3d-warehouse,https://github.com/astopaal/3d-warehouse,review-before-adoption,review-required,reference,warehouse scene patterns
+WarehouseDigitalTwin,https://github.com/Alibadloo/WarehouseDigitalTwin,review-before-adoption,review-required,reference,digital twin patterns
+waretwin,https://github.com/ltinphan/waretwin,review-before-adoption,review-required,reference,warehouse twin patterns
+inventory-management-system,https://github.com/kerroumiFati/inventory-management-system,review-before-adoption,review-required,reference,inventory UX patterns
+Inventory-POS,https://github.com/Haseebaleem/Inventory-POS,review-before-adoption,review-required,reference,POS workflow patterns
+ERPNext,https://github.com/frappe/erpnext,review-before-adoption,review-required,connector reference,ERP model
+Dolibarr,https://github.com/Dolibarr/dolibarr,review-before-adoption,review-required,connector reference,ERP model
+Odoo,https://github.com/odoo/odoo,review-before-adoption,review-required,connector reference,ERP model
+Saleor,https://github.com/saleor/saleor,review-before-adoption,review-required,connector reference,commerce API patterns
+Medusa,https://github.com/medusajs/medusa,review-before-adoption,review-required,connector reference,commerce API patterns
+Vendure,https://github.com/vendurehq/vendure,review-before-adoption,review-required,connector reference,commerce API patterns
+WooCommerce REST API,https://github.com/woocommerce/woocommerce-rest-api,review-before-adoption,review-required,connector reference,commerce API patterns
+Node-RED,https://github.com/node-red/node-red,review-before-adoption,review-required,future reference,event/integration orchestration
+PostgREST,https://github.com/PostgREST/postgrest,review-before-adoption,review-required,future reference,REST over PostgreSQL
+Hasura,https://github.com/hasura/graphql-engine,review-before-adoption,review-required,future reference,GraphQL/event patterns
+Debezium,https://github.com/debezium/debezium,review-before-adoption,review-required,future reference,CDC patterns
+RapidFuzz,https://github.com/rapidfuzz/RapidFuzz,review-before-adoption,review-required,planned,typo/fuzzy search
+CAMeL Tools,https://github.com/CAMeL-Lab/camel_tools,review-before-adoption,review-required,planned,Arabic NLP
+Faster-Whisper,https://github.com/SYSTRAN/faster-whisper,review-before-adoption,review-required,future,voice
+pgvector,https://github.com/pgvector/pgvector,review-before-adoption,review-required,future,semantic/vector search
+Ollama,https://github.com/ollama/ollama,review-before-adoption,review-required,future,local model serving
+llama.cpp,https://github.com/ggml-org/llama.cpp,review-before-adoption,review-required,future,local inference
+OpenAI CLIP,https://github.com/openai/CLIP,review-before-adoption,review-required,future,vision/text embedding reference
+DINOv2,https://github.com/facebookresearch/dinov2,review-before-adoption,review-required,future,visual embedding reference
+GroundingDINO,https://github.com/IDEA-Research/GroundingDINO,review-before-adoption,review-required,future,open-vocabulary detection
+SAM 2,https://github.com/facebookresearch/sam2,review-before-adoption,review-required,future,segmentation
+retail-shelf-recognition,reference-required,review-before-adoption,review-required,reference,shelf recognition research
+shelfmatch,reference-required,review-before-adoption,review-required,reference,shelf matching research
+BullMQ,https://github.com/taskforcesh/bullmq,review-before-adoption,review-required,future,background jobs
+NATS Server,https://github.com/nats-io/nats-server,review-before-adoption,review-required,future,event infrastructure
+Supabase,https://github.com/supabase/supabase,review-before-adoption,review-required,alternative foundation,PostgreSQL/auth/realtime option
+Supabase Realtime,https://github.com/supabase/realtime,review-before-adoption,review-required,alternative foundation,realtime option
+MindAR,https://github.com/hiukim/mind-ar-js,review-before-adoption,review-required,future,AR
+AR.js,https://github.com/AR-js-org/AR.js,review-before-adoption,review-required,future,WebAR

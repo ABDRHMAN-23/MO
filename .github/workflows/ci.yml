@@ -4,18 +4,69 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+
+permissions:
+  contents: write
+
 jobs:
-  web:
+  web-and-domain:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 10.17.1
+          version: 12.10.0
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.20.2
           cache: pnpm
-      - run: pnpm install --no-frozen-lockfile
+      - name: Install dependencies
+        run: |
+          if [ -f pnpm-lock.yaml ]; then
+            pnpm install --frozen-lockfile
+          else
+            pnpm install --no-frozen-lockfile
+          fi
+      - name: Persist lockfile on first successful install
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !hashFiles('pnpm-lock.yaml')
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml
+          git commit -m "chore: add pnpm lockfile"
+          git push
       - run: pnpm typecheck
+      - run: pnpm test
       - run: pnpm build
+
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: spatial
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d spatial"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/spatial
+        run: |
+          for file in packages/db/migrations/*.sql; do
+            echo "Applying $file"
+            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$file"
+          done
+      - name: Tenant isolation integration test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/spatial
+        run: psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f packages/db/tests/tenant_isolation.sql
