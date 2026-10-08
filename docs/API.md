@@ -51,3 +51,9 @@ An Odoo location is not assumed to be a spatial location. It must be explicitly 
 ## Synchronization history
 
 `GET /api/integrations/:connectionId/sync-runs` returns the latest audited synchronization runs with status, duration timestamps, counts, and failure details. A single integration cannot have two active runs at the same time.
+
+
+## Offline placement conflicts
+
+`PATCH /api/placements/:id` accepts `expectedUpdatedAt` for a pending/offline move. When the placement changed after the client last read it, the API returns `409 PLACEMENT_CONFLICT`. The client retains the pending move instead of silently overwriting newer server state.
+
