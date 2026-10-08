@@ -29,6 +29,7 @@ on conflict (id) do nothing;
 
 set role spatial_runtime_test;
 
+begin;
 select app.set_tenant_context('11111111-1111-4111-8111-111111111111');
 
 insert into users (tenant_id,external_subject,display_name,role)
@@ -63,6 +64,9 @@ begin
   end;
 end $$;
 
+commit;
+
+begin;
 select app.set_tenant_context('22222222-2222-4222-8222-222222222222');
 
 insert into products (tenant_id,sku,name)
@@ -72,6 +76,7 @@ select count(*)::int = 1 as tenant_b_only
 from products
 where sku='B-001';
 
+commit;
 reset role;
 
 -- Keep the test database reusable.
