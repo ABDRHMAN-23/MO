@@ -188,3 +188,7 @@ export function requireAiConfirmation(name:string,confirmed:boolean):void {
   const tool=assertAiTool(name);
   if(tool.requiresConfirmation && !confirmed) throw new Error("Explicit confirmation is required for this AI action");
 }
+
+
+export { REPOSITORY_CATALOG, ACTIVE_INTEGRATION_CATALOG, SPATIAL_REFERENCE_CATALOG } from "./repository-catalog";
+export type { RepositoryCatalogEntry, RepositoryRole } from "./repository-catalog";
