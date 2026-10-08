@@ -14,7 +14,7 @@ import {
   ApiError, assertUuid, bodyRows, finiteNumber, integer, optionalText, requestId, safeMetadata, text
 } from "./validation";
 import { RateLimiter } from "./rate-limit";
-import { OdooConnector } from "@spatial/integrations";
+import { assertSafeOutboundUrl, OdooConnector } from "@spatial/integrations";
 
 const port = Number(process.env.PORT ?? 8787);
 const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:5173";
@@ -260,7 +260,7 @@ async function productLocations(tenantId:TenantId,productId:string) {
       join spatial_nodes s on s.id=p.spatial_node_id
       left join lateral (
         select jsonb_agg(jsonb_build_object(
-          'sourceId',ib.source_id,'sourceName',ins.name,'status',ins.status,'isAuthoritative',ins.is_authoritative,'quantity',ib.quantity,
+          'sourceId',ib.source_id,'sourceName',ins.name,'status',ins.status,'isAuthoritative',ins.is_authoritative,'quantity',ib.quantity::double precision,
           'observedAt',ib.observed_at,'externalLocationRef',ib.external_location_ref
         ) order by ib.observed_at desc) as inventory
         from inventory_balances ib
@@ -367,6 +367,11 @@ async function createOdooConnection(tenantId:TenantId,body:Record<string,unknown
   if (!/^https:\/\//i.test(baseUrl)) throw new ApiError(400,"INVALID_INPUT","Odoo baseUrl must use HTTPS");
   const database=optionalText(body.database,"database",120);
   const apiKey=text(body.apiKey,"apiKey",2048);
+  try {
+    await assertSafeOutboundUrl(baseUrl);
+  } catch(error) {
+    throw new ApiError(400,"INVALID_INPUT",error instanceof Error?error.message:"Odoo URL is not allowed");
+  }
   const encryptedSecret=encryptSecret(apiKey);
 
   return withTenant(tenantId,async(db)=>{
@@ -497,7 +502,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
       for(const location of locations){
         await db.query({
           text:"insert into integration_locations (tenant_id,connection_id,external_location_id,name,raw_metadata,synced_at) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4::jsonb,now()) on conflict (tenant_id,connection_id,external_location_id) do update set name=excluded.name,raw_metadata=excluded.raw_metadata,active=true,synced_at=excluded.synced_at",
-          values:[connectionId,location.externalLocationId,location.name,JSON.stringify(location)]
+          values:[connectionId,location.externalLocationId,location.parentExternalLocationId??null,location.name,location.completeName??null,location.usage??null,JSON.stringify(location)]
         });
         locationsUpserted++;
       }
