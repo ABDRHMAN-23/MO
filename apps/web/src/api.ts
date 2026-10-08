@@ -39,7 +39,7 @@ interface ApiProduct{
   id:string;sku:string;barcode:string|null;name:string;category:string|null;image_url:string|null;status:Product["status"];
 }
 interface ApiPlacement{
-  id:string;product_id:string;spatial_node_id:string;status:Placement["status"];verified_at:string|null;
+  id:string;product_id:string;spatial_node_id:string;status:Placement["status"];verified_at:string|null;updated_at:string;
 }
 
 function mapSpatialNode(n:ApiSpatialNode):SpatialNode{
@@ -61,7 +61,7 @@ function mapProduct(p:ApiProduct):Product{
 function mapPlacement(p:ApiPlacement):Placement{
   return {
     id:p.id as Placement["id"],tenantId:"" as Placement["tenantId"],productId:p.product_id as Product["id"],
-    spatialNodeId:p.spatial_node_id as SpatialNode["id"],status:p.status,verifiedAt:p.verified_at
+    spatialNodeId:p.spatial_node_id as SpatialNode["id"],status:p.status,verifiedAt:p.verified_at,updatedAt:p.updated_at
   };
 }
 
@@ -153,6 +153,8 @@ export const api={
     request<IntegrationSummary>("/api/integrations/odoo",{method:"POST",body:JSON.stringify(input)}),
   healthOdoo:(connectionId:string)=>
     request<{status:"connected"|"syncing"|"delayed"|"disconnected"|"error";checkedAt:string;message?:string}>(`/api/integrations/odoo/${connectionId}/health`,{method:"POST"}),
+  movePlacement:(id:string,input:{spatialNodeId:string;expectedUpdatedAt:string;reason?:string})=>
+    request<ApiPlacement>(`/api/placements/${id}`,{method:"PATCH",body:JSON.stringify(input)}).then(mapPlacement),
   syncOdoo:(connectionId:string)=>
     request<{products:number;productsCreated:number;productsUpdated:number;locationsUpserted:number;stockRows:number;stockSkipped:number}>(`/api/integrations/odoo/${connectionId}/sync`,{method:"POST"}),
   mapIntegrationLocation:(input:{sourceId:string;spatialNodeId:string;externalLocationRef:string})=>
