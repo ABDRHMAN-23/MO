@@ -512,7 +512,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
 
       for(const location of locations){
         await db.query({
-          text:"insert into integration_locations
+          text:`insert into integration_locations
           (tenant_id,connection_id,external_location_id,parent_external_location_id,name,complete_name,usage,raw_metadata,synced_at)
           values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5,$6,$7::jsonb,now())
           on conflict (tenant_id,connection_id,external_location_id) do update
@@ -522,7 +522,7 @@ async function syncOdooConnection(tenantId:TenantId,connectionId:string) {
                 usage=excluded.usage,
                 raw_metadata=excluded.raw_metadata,
                 active=true,
-                synced_at=excluded.synced_at",
+                synced_at=excluded.synced_at`,
           values:[connectionId,location.externalLocationId,location.parentExternalLocationId??null,location.name,location.completeName??null,location.usage??null,JSON.stringify(location)]
         });
         locationsUpserted++;
