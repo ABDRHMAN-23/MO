@@ -46,3 +46,8 @@ Sync imports:
 Provider product IDs are stored in tenant-scoped integration_product_mappings. Stock is written only to inventory_balances. It is not copied into products or placements.
 
 An Odoo location is not assumed to be a spatial location. It must be explicitly mapped to an internal spatial node before the UI can label its quantity as spatially verified.
+
+
+## Synchronization history
+
+`GET /api/integrations/:connectionId/sync-runs` returns the latest audited synchronization runs with status, duration timestamps, counts, and failure details. A single integration cannot have two active runs at the same time.

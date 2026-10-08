@@ -1,0 +1,1068 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Spatial Inventory API",
+    "version": "0.2.0",
+    "description": "Tenant-scoped API for spatial inventory, authoritative stock observations, and provider integrations. Production authentication is fail-closed until a verified auth adapter is configured."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8787",
+      "description": "Local development"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "requestId": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "SpatialNode": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "floorId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "x": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "y": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "z": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "depth": {
+            "type": "number"
+          },
+          "rotationX": {
+            "type": "number"
+          },
+          "rotationY": {
+            "type": "number"
+          },
+          "rotationZ": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "Product": {
+        "type": "object",
+        "required": [
+          "id",
+          "sku",
+          "name",
+          "status"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "sku": {
+            "type": "string"
+          },
+          "barcode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "image_url": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "Integration": {
+        "type": "object",
+        "required": [
+          "id",
+          "provider_type",
+          "name",
+          "base_url",
+          "enabled"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider_type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "base_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "provider_database": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "last_healthcheck_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "last_error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "source_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "source_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "is_authoritative": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "last_synced_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "latest_sync_status": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "latest_sync_started_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "latest_sync_finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "latest_sync_products_seen": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "latest_sync_stock_rows": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "latest_sync_error": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "SyncRun": {
+        "type": "object",
+        "required": [
+          "id",
+          "status",
+          "attempt",
+          "triggered_by",
+          "started_at"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "attempt": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "triggered_by": {
+            "type": "string"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finished_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "products_seen": {
+            "type": "integer"
+          },
+          "products_created": {
+            "type": "integer"
+          },
+          "products_updated": {
+            "type": "integer"
+          },
+          "locations_seen": {
+            "type": "integer"
+          },
+          "locations_upserted": {
+            "type": "integer"
+          },
+          "stock_rows": {
+            "type": "integer"
+          },
+          "stock_skipped": {
+            "type": "integer"
+          },
+          "error_code": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "error_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Health response"
+          },
+          "503": {
+            "description": "Unavailable"
+          }
+        }
+      }
+    },
+    "/api/overview": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Tenant overview"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "503": {
+            "description": "Database unavailable"
+          }
+        }
+      }
+    },
+    "/api/spatial": {
+      "get": {
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Spatial nodes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SpatialNode"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "type",
+                  "name"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "parentId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "z": {
+                    "type": "number"
+                  },
+                  "width": {
+                    "type": "number"
+                  },
+                  "height": {
+                    "type": "number"
+                  },
+                  "depth": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          },
+          "400": {
+            "description": "Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/spatial/{id}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Spatial node"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "patch": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Archived"
+          },
+          "409": {
+            "description": "Node has children or placements"
+          }
+        }
+      }
+    },
+    "/api/spatial/{id}/products": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products in location",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Product"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/products": {
+      "get": {
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Products"
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sku",
+                  "name"
+                ],
+                "properties": {
+                  "sku": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "barcode": {
+                    "type": "string"
+                  },
+                  "category": {
+                    "type": "string"
+                  },
+                  "imageUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/products/{id}/locations": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Product locations with mapped inventory observations"
+          }
+        }
+      }
+    },
+    "/api/placements": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "productId",
+                  "spatialNodeId"
+                ],
+                "properties": {
+                  "productId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "spatialNodeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Placement created"
+          }
+        }
+      }
+    },
+    "/api/placements/{id}": {
+      "patch": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "spatialNodeId"
+                ],
+                "properties": {
+                  "spatialNodeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Placement moved"
+          }
+        }
+      },
+      "delete": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Placement archived"
+          }
+        }
+      }
+    },
+    "/api/integrations": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Tenant integrations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Integration"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/integrations/odoo": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "baseUrl",
+                  "apiKey"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "baseUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "database": {
+                    "type": "string"
+                  },
+                  "apiKey": {
+                    "type": "string",
+                    "writeOnly": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Integration created"
+          },
+          "400": {
+            "description": "Invalid or unsafe URL"
+          },
+          "503": {
+            "description": "Encryption not configured"
+          }
+        }
+      }
+    },
+    "/api/integrations/odoo/{id}/health": {
+      "post": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider health"
+          }
+        }
+      }
+    },
+    "/api/integrations/odoo/{id}/sync": {
+      "post": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync completed"
+          },
+          "409": {
+            "description": "Sync already running"
+          },
+          "502": {
+            "description": "Provider sync failed"
+          }
+        }
+      }
+    },
+    "/api/integrations/{id}/locations": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "External provider locations"
+          }
+        }
+      }
+    },
+    "/api/integrations/{id}/sync-runs": {
+      "get": {
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recent synchronization runs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SyncRun"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/inventory-sources": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Inventory source registry"
+          }
+        }
+      },
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "providerType",
+                  "name"
+                ],
+                "properties": {
+                  "providerType": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "locationRef": {
+                    "type": "string"
+                  },
+                  "isAuthoritative": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Source created"
+          }
+        }
+      }
+    },
+    "/api/inventory-location-mappings": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sourceId",
+                  "spatialNodeId",
+                  "externalLocationRef"
+                ],
+                "properties": {
+                  "sourceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "spatialNodeId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "externalLocationRef": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mapping created"
+          }
+        }
+      }
+    },
+    "/api/import/products": {
+      "post": {
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rows"
+                ],
+                "properties": {
+                  "rows": {
+                    "type": "array",
+                    "maxItems": 5000,
+                    "items": {
+                      "type": "object"
+                    }
+                  },
+                  "sourceId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Import result"
+          },
+          "409": {
+            "description": "Location mapping required"
+          }
+        }
+      }
+    }
+  }
+}

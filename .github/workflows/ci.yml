@@ -28,6 +28,8 @@ jobs:
 
       - run: pnpm typecheck
       - run: pnpm test
+      - name: Validate OpenAPI
+        run: node -e "JSON.parse(require('fs').readFileSync('docs/openapi.json','utf8')); console.log('OpenAPI JSON valid')"
       - run: pnpm build
 
   database:
