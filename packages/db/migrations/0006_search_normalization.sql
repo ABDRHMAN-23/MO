@@ -13,7 +13,7 @@ select trim(
       translate(
         lower(coalesce(input,'')),
         'أإآٱىيكکةؤئ',
-        'ااااىييككهوي'
+        'ااااييككهوي'
       ),
       'ـًٌٍَُِّْٰ',
       ''
