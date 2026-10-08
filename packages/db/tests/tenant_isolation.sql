@@ -17,7 +17,7 @@ grant select, insert, update, delete on
   tenants, users, spatial_nodes, products, placements, audit_events,
   inventory_sources, inventory_location_mappings, inventory_balances,
   inventory_events, placement_history, integration_connections,
-  integration_locations, integration_product_mappings
+  integration_locations, integration_product_mappings, integration_sync_runs
   to spatial_runtime_test;
 grant usage, select on all sequences in schema public to spatial_runtime_test;
 
@@ -55,6 +55,13 @@ insert into integration_connections
 values
   (app.current_tenant_id(),'odoo','A Odoo','https://odoo.example.test','test-ciphertext');
 
+insert into integration_sync_runs
+  (tenant_id,integration_id,source_id,provider_type,status)
+select app.current_tenant_id(),c.id,s.id,'odoo','succeeded'
+from integration_connections c
+join inventory_sources s on s.connection_id=c.id
+where c.name='A Odoo';
+
 do $assert$
 begin
   if exists (select 1 from tenants where id='22222222-2222-4222-8222-222222222222') then
@@ -62,6 +69,9 @@ begin
   end if;
   if exists (select 1 from products where sku='B-001') then
     raise exception 'tenant isolation failure: tenant A can read tenant B product';
+  end if;
+  if exists (select 1 from integration_sync_runs r join integration_connections c on c.id=r.integration_id where c.name='B Odoo') then
+    raise exception 'tenant A can read tenant B sync run';
   end if;
 end
 $assert$;
@@ -82,6 +92,18 @@ begin
     values
       ('22222222-2222-4222-8222-222222222222','odoo','B Odoo','https://odoo.example.test','test');
     raise exception 'cross-tenant integration insert unexpectedly succeeded';
+  exception when insufficient_privilege then
+    null;
+  end;
+
+  begin
+    insert into integration_sync_runs
+      (tenant_id,integration_id,source_id,provider_type,status)
+    select '22222222-2222-4222-8222-222222222222',c.id,s.id,'odoo','running'
+    from integration_connections c
+    join inventory_sources s on s.connection_id=c.id
+    where c.name='A Odoo';
+    raise exception 'cross-tenant sync run insert unexpectedly succeeded';
   exception when insufficient_privilege then
     null;
   end;
@@ -116,6 +138,9 @@ begin
   end if;
   if not exists (select 1 from integration_connections where name='B Odoo') then
     raise exception 'tenant B runtime session cannot see its own integration';
+  end if;
+  if not exists (select 1 from integration_sync_runs r join integration_connections c on c.id=r.integration_id where c.name='B Odoo') then
+    raise exception 'tenant B runtime session cannot see its own sync run';
   end if;
 end
 $tenant_b$;
