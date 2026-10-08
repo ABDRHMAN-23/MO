@@ -47,3 +47,4 @@ Supabase,https://github.com/supabase/supabase,review-before-adoption,review-requ
 Supabase Realtime,https://github.com/supabase/realtime,review-before-adoption,review-required,alternative foundation,realtime option
 MindAR,https://github.com/hiukim/mind-ar-js,review-before-adoption,review-required,future,AR
 AR.js,https://github.com/AR-js-org/AR.js,review-before-adoption,review-required,future,WebAR
+Shopify Webhooks,https://shopify.dev/docs/api/admin-rest,review-before-adoption,review-required,connector reference,webhook contract reference
