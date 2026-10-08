@@ -55,6 +55,12 @@ insert into integration_connections
 values
   (app.current_tenant_id(),'odoo','A Odoo','https://odoo.example.test','test-ciphertext');
 
+insert into inventory_sources
+  (tenant_id,provider_type,name,status,is_authoritative,connection_id)
+select app.current_tenant_id(),'odoo','A Odoo Source','connected',true,c.id
+from integration_connections c
+where c.name='A Odoo';
+
 insert into integration_sync_runs
   (tenant_id,integration_id,source_id,provider_type,status)
 select app.current_tenant_id(),c.id,s.id,'odoo','succeeded'
