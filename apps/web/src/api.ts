@@ -94,6 +94,30 @@ export interface IntegrationSummary{
   source_status:string|null;
   is_authoritative:boolean|null;
   last_synced_at:string|null;
+  latest_sync_status:string|null;
+  latest_sync_started_at:string|null;
+  latest_sync_finished_at:string|null;
+  latest_sync_products_seen:number|null;
+  latest_sync_stock_rows:number|null;
+  latest_sync_error:string|null;
+}
+export interface IntegrationSyncRun{
+  id:string;
+  status:"pending"|"running"|"succeeded"|"failed";
+  attempt:number;
+  triggered_by:string;
+  started_at:string;
+  finished_at:string|null;
+  products_seen:number;
+  products_created:number;
+  products_updated:number;
+  locations_seen:number;
+  locations_upserted:number;
+  stock_rows:number;
+  stock_skipped:number;
+  error_code:string|null;
+  error_message:string|null;
+  created_at:string;
 }
 export interface IntegrationLocationSummary{
   id:string;
@@ -124,6 +148,7 @@ export const api={
   inventorySources:()=>request<InventorySourceSummary[]>("/api/inventory-sources"),
   integrations:()=>request<IntegrationSummary[]>("/api/integrations"),
   integrationLocations:(connectionId:string)=>request<IntegrationLocationSummary[]>(`/api/integrations/${connectionId}/locations`),
+  integrationSyncRuns:(connectionId:string)=>request<IntegrationSyncRun[]>(`/api/integrations/${connectionId}/sync-runs`),
   createOdoo:(input:{name:string;baseUrl:string;database?:string;apiKey:string})=>
     request<IntegrationSummary>("/api/integrations/odoo",{method:"POST",body:JSON.stringify(input)}),
   healthOdoo:(connectionId:string)=>
