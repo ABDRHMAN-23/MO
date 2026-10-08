@@ -167,7 +167,7 @@ async function createSpatial(tenantId:TenantId,body:Record<string,unknown>) {
       values:[type==="floor" ? id : floorId,id]
     })).rows[0];
     await db.query({
-      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','spatial_node',$1,$2::jsonb,'{""source"":""api""}')",
+      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','spatial_node',$1,$2::jsonb,'{\"source\":\"api\"}')",
       values:[id,JSON.stringify(finalRow)]
     });
     return finalRow;
@@ -195,7 +195,7 @@ async function updateSpatial(tenantId:TenantId,id:string,body:Record<string,unkn
     if (!before.rows[0]) throw new ApiError(404,"NOT_FOUND","Spatial node not found");
     const updated=await db.query({text:`update spatial_nodes set ${assignments.join(",")},updated_at=now() where id=$${values.length} and deleted_at is null returning id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at`,values});
     await db.query({
-      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'update','spatial_node',$1,$2::jsonb,$3::jsonb,'{""source"":""api""}')",
+      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'update','spatial_node',$1,$2::jsonb,$3::jsonb,'{\"source\":\"api\"}')",
       values:[id,JSON.stringify(before.rows[0]),JSON.stringify(updated.rows[0])]
     });
     return updated.rows[0];
@@ -213,7 +213,7 @@ async function softDeleteSpatial(tenantId:TenantId,id:string) {
     if (placements.rows[0].count>0) throw new ApiError(409,"HAS_ACTIVE_PLACEMENTS","Remove active product placements before archiving this location");
     const updated=await db.query({text:"update spatial_nodes set deleted_at=now(),updated_at=now() where id=$1 returning id,deleted_at",values:[id]});
     await db.query({
-      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'delete','spatial_node',$1,$2::jsonb,$3::jsonb,'{""source"":""api""}')",
+      text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'delete','spatial_node',$1,$2::jsonb,$3::jsonb,'{\"source\":\"api\"}')",
       values:[id,JSON.stringify(before.rows[0]),JSON.stringify(updated.rows[0])]
     });
     return updated.rows[0];
@@ -239,7 +239,7 @@ async function createProduct(tenantId:TenantId,body:Record<string,unknown>) {
   if (imageUrl && !/^https:\/\//i.test(imageUrl)) throw new ApiError(400,"INVALID_INPUT","imageUrl must use HTTPS");
   return withTenant(tenantId,async(db)=>{
     const result=await db.query({text:"insert into products (tenant_id,sku,name,barcode,category,image_url) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,$5) returning id,sku,barcode,name,category,image_url,status",values:[sku,name,barcode,category,imageUrl]});
-    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','product',$1,$2::jsonb,'{""source"":""api""}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','product',$1,$2::jsonb,'{\"source\":\"api\"}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
     return result.rows[0];
   });
 }
@@ -294,7 +294,7 @@ async function createPlacement(tenantId:TenantId,body:Record<string,unknown>) {
     if (!node.rows[0]) throw new ApiError(404,"NOT_FOUND","Spatial location not found");
     const created=await db.query({text:"insert into placements (tenant_id,product_id,spatial_node_id,status,verified_at) values (current_setting('app.tenant_id')::uuid,$1,$2,'placed',now()) returning id,product_id,spatial_node_id,status,verified_at",values:[productId,spatialNodeId]});
     await db.query({text:"insert into placement_history (tenant_id,placement_id,product_id,new_spatial_node_id,source,reason) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,'user',coalesce($4,'Initial placement'))",values:[created.rows[0].id,productId,spatialNodeId,reason]});
-    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','placement',$1,$2::jsonb,'{""source"":""api""}')",values:[created.rows[0].id,JSON.stringify(created.rows[0])]});
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','placement',$1,$2::jsonb,'{\"source\":\"api\"}')",values:[created.rows[0].id,JSON.stringify(created.rows[0])]});
     return created.rows[0];
   });
 }
@@ -311,7 +311,7 @@ async function movePlacement(tenantId:TenantId,placementId:string,body:Record<st
     if (existing.rows[0].spatial_node_id===target) return existing.rows[0];
     const updated=await db.query({text:"update placements set spatial_node_id=$1,status='placed',verified_at=now(),updated_at=now() where id=$2 returning id,product_id,spatial_node_id,status,verified_at",values:[target,placementId]});
     await db.query({text:"insert into placement_history (tenant_id,placement_id,product_id,old_spatial_node_id,new_spatial_node_id,source,reason) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,$4,'user',coalesce($5,'Moved by user'))",values:[placementId,existing.rows[0].product_id,existing.rows[0].spatial_node_id,target,reason]});
-    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'move','placement',$1,$2::jsonb,$3::jsonb,'{""source"":""api""}')",values:[placementId,JSON.stringify(existing.rows[0]),JSON.stringify(updated.rows[0])]});
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'move','placement',$1,$2::jsonb,$3::jsonb,'{\"source\":\"api\"}')",values:[placementId,JSON.stringify(existing.rows[0]),JSON.stringify(updated.rows[0])]});
     return updated.rows[0];
   });
 }
@@ -323,7 +323,7 @@ async function deletePlacement(tenantId:TenantId,placementId:string) {
     if (!existing.rows[0]) throw new ApiError(404,"NOT_FOUND","Placement not found");
     const updated=await db.query({text:"update placements set deleted_at=now(),status='missing_location',updated_at=now() where id=$1 returning id,product_id,spatial_node_id,status,verified_at,deleted_at",values:[placementId]});
     await db.query({text:"insert into placement_history (tenant_id,placement_id,product_id,old_spatial_node_id,source,reason) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,'user','Placement removed')",values:[placementId,existing.rows[0].product_id,existing.rows[0].spatial_node_id]});
-    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'delete','placement',$1,$2::jsonb,$3::jsonb,'{""source"":""api""}')",values:[placementId,JSON.stringify(existing.rows[0]),JSON.stringify(updated.rows[0])]});
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,old_data,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'delete','placement',$1,$2::jsonb,$3::jsonb,'{\"source\":\"api\"}')",values:[placementId,JSON.stringify(existing.rows[0]),JSON.stringify(updated.rows[0])]});
     return updated.rows[0];
   });
 }
@@ -352,7 +352,7 @@ async function createInventorySource(tenantId:TenantId,body:Record<string,unknow
       text:"insert into inventory_sources (tenant_id,provider_type,name,location_ref,status,is_authoritative) values (current_setting('app.tenant_id')::uuid,$1,$2,$3,'disconnected',$4) returning id,provider_type,name,location_ref,status,is_authoritative,last_synced_at",
       values:[providerType,name,locationRef,isAuthoritative]
     });
-    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','inventory_source',$1,$2::jsonb,'{""source"":""api""}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'create','inventory_source',$1,$2::jsonb,'{\"source\":\"api\"}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
     return result.rows[0];
   });
 }
@@ -370,7 +370,7 @@ async function createInventoryMapping(tenantId:TenantId,body:Record<string,unkno
       text:"insert into inventory_location_mappings (tenant_id,source_id,spatial_node_id,external_location_ref) values (current_setting('app.tenant_id')::uuid,$1,$2,$3) on conflict (tenant_id,source_id,external_location_ref) do update set spatial_node_id=excluded.spatial_node_id,updated_at=now() returning id,source_id,spatial_node_id,external_location_ref",
       values:[sourceId,spatialNodeId,externalLocationRef]
     });
-    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'map','inventory_location_mapping',$1,$2::jsonb,'{""source"":""api""}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
+    await db.query({text:"insert into audit_events (tenant_id,action,entity_type,entity_id,new_data,metadata) values (current_setting('app.tenant_id')::uuid,'map','inventory_location_mapping',$1,$2::jsonb,'{\"source\":\"api\"}')",values:[result.rows[0].id,JSON.stringify(result.rows[0])]});
     return result.rows[0];
   });
 }
