@@ -242,7 +242,18 @@ importers:
         specifier: 5.0.3
         version: 5.0.3(@types/node@22.20.2)(vite@8.3.1(@types/node@22.20.2)(esbuild@0.28.2)(tsx@4.23.15))
 
-  packages/integrations: {}
+  packages/integrations:
+    devDependencies:
+      '@types/node':
+        specifier: 22.20.2
+        version: 22.20.2
+      typescript:
+        specifier: 5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: 5.0.3
+        version: 5.0.3(@types/node@22.20.2)(vite@8.3.1(@types/node@22.20.2)(esbuild@0.28.2)(tsx@4.23.15))
+
 
 packages:
 
