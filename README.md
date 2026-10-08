@@ -6,7 +6,7 @@ This repository implements the core of a multi-tenant spatial inventory product:
 
 ## Current release boundary
 
-The current code is a Phase 1/core foundation, not a fake AI dashboard. It includes a real PostgreSQL data model, tenant-scoped API, data-driven 2D/3D viewer/editor, product catalog, placement history, CSV onboarding, barcode scanning, PWA shell, connector contracts, audit trail, and CI/RLS tests.
+The current code is a Phase 1/core foundation, not a fake AI dashboard. It includes a real PostgreSQL data model, tenant-scoped API, data-driven 2D/3D viewer/editor, product catalog, placement history, CSV onboarding, barcode scanning, PWA shell, conflict-safe offline product placement moves, a real Odoo connector, connector contracts, audit trail, OpenAPI, RBAC, and CI/RLS tests.
 
 AI natural-language orchestration, voice, computer vision, AR, multiple provider connectors, billing, and advanced offline conflict resolution are deliberately gated until the core is verified against a real database and pilot.
 
