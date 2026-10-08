@@ -363,8 +363,8 @@ async function listIntegrations(tenantId:TenantId) {
 
 async function createOdooConnection(tenantId:TenantId,body:Record<string,unknown>) {
   const name=text(body.name,"name",160);
-  const baseUrl=text(body.baseUrl,"baseUrl",2048).replace(/\\/$/,"");
-  if (!/^https:\\/\\//i.test(baseUrl)) throw new ApiError(400,"INVALID_INPUT","Odoo baseUrl must use HTTPS");
+  const baseUrl=text(body.baseUrl,"baseUrl",2048).replace(/\/$/,"");
+  if (!/^https:\/\//i.test(baseUrl)) throw new ApiError(400,"INVALID_INPUT","Odoo baseUrl must use HTTPS");
   const database=optionalText(body.database,"database",120);
   const apiKey=text(body.apiKey,"apiKey",2048);
   const encryptedSecret=encryptSecret(apiKey);
@@ -646,11 +646,11 @@ async function route(req:IncomingMessage,res:ServerResponse){
   if (url.pathname==="/api/inventory-sources" && method==="GET") return sendJson(res,200,await listInventorySources(tenantId));
   if (url.pathname==="/api/inventory-sources" && method==="POST") return sendJson(res,201,await createInventorySource(tenantId,await readJson(req)));
   if (url.pathname==="/api/inventory-location-mappings" && method==="POST") return sendJson(res,201,await createInventoryMapping(tenantId,await readJson(req)));
-  const odooHealthMatch=url.pathname.match(/^\\/api\\/integrations\\/odoo\\/([0-9a-f-]+)\\/health$/i);
+  const odooHealthMatch=url.pathname.match(/^\/api\/integrations\/odoo\/([0-9a-f-]+)\/health$/i);
   if (odooHealthMatch && method==="POST") return sendJson(res,200,await odooHealth(tenantId,odooHealthMatch[1]));
-  const odooSyncMatch=url.pathname.match(/^\\/api\\/integrations\\/odoo\\/([0-9a-f-]+)\\/sync$/i);
+  const odooSyncMatch=url.pathname.match(/^\/api\/integrations\/odoo\/([0-9a-f-]+)\/sync$/i);
   if (odooSyncMatch && method==="POST") return sendJson(res,200,await syncOdooConnection(tenantId,odooSyncMatch[1]));
-  const integrationLocationsMatch=url.pathname.match(/^\\/api\\/integrations\\/([0-9a-f-]+)\\/locations$/i);
+  const integrationLocationsMatch=url.pathname.match(/^\/api\/integrations\/([0-9a-f-]+)\/locations$/i);
   if (integrationLocationsMatch && method==="GET") return sendJson(res,200,await listIntegrationLocations(tenantId,integrationLocationsMatch[1]));
   if (url.pathname==="/api/placements" && method==="POST") return sendJson(res,201,await createPlacement(tenantId,await readJson(req)));
   if (url.pathname==="/api/import/products" && method==="POST") return sendJson(res,200,await importProducts(tenantId,await readJson(req)));
