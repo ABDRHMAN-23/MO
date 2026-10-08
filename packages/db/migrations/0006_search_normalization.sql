@@ -10,9 +10,13 @@ as $fn$
 select trim(
   regexp_replace(
     translate(
-      lower(coalesce(input,'')),
-      'أإآٱىيكکةؤئـًٌٍَُِّْٰ',
-      'اااايييككهوي'
+      translate(
+        lower(coalesce(input,'')),
+        'أإآٱىيكکةؤئ',
+        'ااااىييككهوي'
+      ),
+      'ـًٌٍَُِّْٰ',
+      ''
     ),
     '[[:space:]]+',
     ' ',
