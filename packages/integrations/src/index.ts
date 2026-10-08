@@ -60,3 +60,4 @@ export function assertFiniteQuantity(value:number):void {
 }
 export { OdooConnector } from "./odoo";
 export type { OdooConnectorConfig } from "./odoo";
+export { assertSafeOutboundUrl, isPrivateAddress } from "./outbound-url";
