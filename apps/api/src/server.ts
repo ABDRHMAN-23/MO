@@ -111,7 +111,7 @@ async function listSpatial(tenantId:TenantId,search:string|null) {
   return withTenant(tenantId,async(db)=>{
     const query=search?.trim() ? likePattern(normalizeSearchInput(search)) : null;
     const result=query
-      ? await db.query({text:"select id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at from spatial_nodes where deleted_at is null and search_text_normalized ilike '%' || app.normalize_search_text($1) || '%' order by sort_order,name",values:[query]})
+      ? await db.query({text:"select id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at from spatial_nodes where deleted_at is null and search_text_normalized ilike $1 escape '\\' order by sort_order,name",values:[query]})
       : await db.query("select id,parent_id,floor_id,node_type as type,name,code,x,y,z,width,height,depth,rotation_x,rotation_y,rotation_z,metadata,deleted_at from spatial_nodes where deleted_at is null order by sort_order,name");
     return result.rows;
   });
@@ -237,7 +237,7 @@ async function listProducts(tenantId:TenantId,query:string|null) {
   return withTenant(tenantId,async(db)=>{
     const normalized=query?.trim() ? normalizeSearchInput(query) : null;
     const result=normalized
-      ? await db.query({text:"select id,sku,barcode,name,category,image_url,status from products where status <> 'archived' and search_text_normalized ilike '%' || app.normalize_search_text($1) || '%' order by name limit 50",values:[likePattern(normalized)]})
+      ? await db.query({text:"select id,sku,barcode,name,category,image_url,status from products where status <> 'archived' and search_text_normalized ilike $1 escape '\\' order by name limit 50",values:[likePattern(normalized)]})
       : await db.query("select id,sku,barcode,name,category,image_url,status from products where status <> 'archived' order by name limit 100");
     return result.rows;
   });
