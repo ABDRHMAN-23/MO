@@ -1,3 +1,4 @@
+import { assertSafeOutboundUrl } from "./outbound-url";
 import type { CanonicalProduct, CanonicalStock, CanonicalLocation, ConnectorContext, ConnectorHealth, InventoryConnector } from "./index";
 
 export interface OdooConnectorConfig {
@@ -19,6 +20,7 @@ export class OdooConnector implements InventoryConnector {
   }
 
   private async call(model: string, method: string, body: OdooRecord, signal?: AbortSignal): Promise<unknown> {
+    await assertSafeOutboundUrl(this.config.baseUrl);
     const headers: Record<string,string> = {
       authorization: `bearer ${this.config.apiKey}`,
       "content-type": "application/json",
@@ -120,7 +122,10 @@ export class OdooConnector implements InventoryConnector {
       externalLocationId:String(row.id),
       name:typeof row.name==="string"?row.name:`Odoo location ${row.id}`,
       code:null,
-      type:typeof row.usage==="string"?row.usage:"unknown"
+      type:typeof row.usage==="string"?row.usage:"unknown",
+      parentExternalLocationId:Array.isArray(row.location_id)&&row.location_id[0]!=null?String(row.location_id[0]):null,
+      completeName:typeof row.complete_name==="string"?row.complete_name:null,
+      usage:typeof row.usage==="string"?row.usage:null
     }));
   }
 }
