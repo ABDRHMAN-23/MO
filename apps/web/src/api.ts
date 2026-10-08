@@ -121,7 +121,6 @@ export const api={
       inventory:row.inventory
     }));
   },
-  spatialProducts:async(id:string)=>(await request<ApiProduct[]>(`/api/spatial/${id}/products`)).map(mapProduct),
   inventorySources:()=>request<InventorySourceSummary[]>("/api/inventory-sources"),
   integrations:()=>request<IntegrationSummary[]>("/api/integrations"),
   integrationLocations:(connectionId:string)=>request<IntegrationLocationSummary[]>(`/api/integrations/${connectionId}/locations`),
