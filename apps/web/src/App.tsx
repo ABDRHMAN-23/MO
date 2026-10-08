@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber";
 import { Grid, OrbitControls } from "@react-three/drei";
-import type { Product, ProductLocationResult, SpatialNode } from "@spatial/domain";
+import { REPOSITORY_CATALOG, type Product, type ProductLocationResult, type SpatialNode } from "@spatial/domain";
 import { isPositioned } from "@spatial/domain";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -439,6 +439,16 @@ export function App(){
         <form className="compact-form" onSubmit={addLocation}><div className="section-head"><strong>{t("addLocation")}</strong></div><select value={locationForm.type} onChange={(e)=>setLocationForm({...locationForm,type:e.target.value})}>{(["space","floor","zone","room","aisle","rack","shelf","cabinet","drawer","bin","box","slot","wall","table","desk","counter","refrigerator","freezer","display_case","storage_area"] as SpatialNode["type"][]).map((type)=><option key={type} value={type}>{nodeLabel(locale,type)}</option>)}</select><input required value={locationForm.name} onChange={(e)=>setLocationForm({...locationForm,name:e.target.value})} placeholder={t("name")}/><input value={locationForm.code} onChange={(e)=>setLocationForm({...locationForm,code:e.target.value})} placeholder="CODE"/><select value={locationForm.parentId} onChange={(e)=>setLocationForm({...locationForm,parentId:e.target.value})}><option value="">{t("parent")}: {t("choose")}</option>{nodes.map((node)=><option key={node.id} value={node.id}>{node.code??node.name}</option>)}</select><div className="triple"><input inputMode="decimal" value={locationForm.x} onChange={(e)=>setLocationForm({...locationForm,x:e.target.value})} placeholder="X"/><input inputMode="decimal" value={locationForm.y} onChange={(e)=>setLocationForm({...locationForm,y:e.target.value})} placeholder="Y"/><input inputMode="decimal" value={locationForm.z} onChange={(e)=>setLocationForm({...locationForm,z:e.target.value})} placeholder="Z"/></div><button className="primary" disabled={!online}>{t("createLocation")}</button></form>
         <form className="compact-form" onSubmit={addPlacement}><div className="section-head"><strong>{t("place")}</strong></div><select required value={placementForm.productId} onChange={(e)=>setPlacementForm({...placementForm,productId:e.target.value})}><option value="">{t("product")}: {t("choose")}</option>{products.map((p)=><option key={p.id} value={p.id}>{p.name} · {p.sku}</option>)}</select><select required value={placementForm.spatialNodeId} onChange={(e)=>setPlacementForm({...placementForm,spatialNodeId:e.target.value})}><option value="">{t("location")}: {t("choose")}</option>{nodes.map((n)=><option key={n.id} value={n.id}>{n.code??n.name}</option>)}</select><input value={placementForm.reason} onChange={(e)=>setPlacementForm({...placementForm,reason:e.target.value})} placeholder={t("reason")}/><button className="primary" disabled={!online}>{t("placeProduct")}</button></form>
         <form className="compact-form" onSubmit={addSource}><div className="section-head"><strong>{t("source")}</strong></div><input required value={sourceForm.name} onChange={(e)=>setSourceForm({...sourceForm,name:e.target.value})} placeholder={t("sourceName")}/><input required value={sourceForm.providerType} onChange={(e)=>setSourceForm({...sourceForm,providerType:e.target.value})} placeholder={t("sourceProvider")}/><input value={sourceForm.locationRef} onChange={(e)=>setSourceForm({...sourceForm,locationRef:e.target.value})} placeholder="Location ref"/><button className="secondary" disabled={!online}>{t("createSource")}</button>{sources.map((source)=><div className="source-row" key={source.id}><span>{source.name}</span><small>{source.status}</small></div>)}</form>
+        <div className="compact-form">
+          <div className="section-head"><strong>{locale==="ar"?"مصادر النظام والتكاملات":"System sources & integrations"}</strong><span>{REPOSITORY_CATALOG.length}</span></div>
+          <div className="mini-list">
+            {REPOSITORY_CATALOG.filter((entry)=>entry.role==="integration"||entry.role==="reference").map((entry)=>
+              <a key={entry.id} href={entry.repository} target="_blank" rel="noreferrer" className="source-row" title={entry.description}>
+                <span>{entry.name}</span><small>{entry.status==="implemented"?(locale==="ar"?"مُفعّل":"implemented"):(entry.role==="integration"?(locale==="ar"?"مسجل":"registered"):(locale==="ar"?"مرجع":"reference"))}</small>
+              </a>
+            )}
+          </div>
+        </div>
         <IntegrationPanel integrations={integrations} nodes={nodes} t={t} onRefresh={async()=>{setIntegrations(await api.integrations());await load(query);}}/>
         <label className="import-control"><span>{t("importCsv")}</span><input type="file" accept=".csv,text/csv" onChange={(e)=>{const file=e.target.files?.[0];if(file)void importCsvFile(file,sources.find((source)=>source.is_authoritative)?.id)}}/></label>
       </aside>
