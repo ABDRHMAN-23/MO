@@ -11,20 +11,20 @@ vite,https://github.com/vitejs/vite,8.3.1,MIT-verified,build tool,web build
 typescript,https://github.com/microsoft/TypeScript,7.0.2,Apache-2.0-verified,build tool,static type checking
 vitest,https://github.com/vitest-dev/vitest,5.0.3,MIT-verified,test tool,domain tests
 tsx,https://github.com/privatenumber/tsx,4.23.15,MIT-verified,dev tool,API dev runner
-openPlan3D,https://github.com/laanlabs/openPlan3D,review-before-adoption,review-required,reference,3D planning patterns
-blueprint3d-modern,https://github.com/charmlinn/blueprint3d-modern,review-before-adoption,review-required,reference,2D/3D planning patterns
-3d-warehouse,https://github.com/astopaal/3d-warehouse,review-before-adoption,review-required,reference,warehouse scene patterns
-WarehouseDigitalTwin,https://github.com/Alibadloo/WarehouseDigitalTwin,review-before-adoption,review-required,reference,digital twin patterns
-waretwin,https://github.com/ltinphan/waretwin,review-before-adoption,review-required,reference,warehouse twin patterns
-inventory-management-system,https://github.com/kerroumiFati/inventory-management-system,review-before-adoption,review-required,reference,inventory UX patterns
-Inventory-POS,https://github.com/Haseebaleem/Inventory-POS,review-before-adoption,review-required,reference,POS workflow patterns
-ERPNext,https://github.com/frappe/erpnext,review-before-adoption,review-required,connector reference,ERP model
-Dolibarr,https://github.com/Dolibarr/dolibarr,review-before-adoption,review-required,connector reference,ERP model
-Odoo,https://github.com/odoo/odoo,review-before-adoption,review-required,connector reference,ERP model
-Saleor,https://github.com/saleor/saleor,review-before-adoption,review-required,connector reference,commerce API patterns
-Medusa,https://github.com/medusajs/medusa,review-before-adoption,review-required,connector reference,commerce API patterns
-Vendure,https://github.com/vendurehq/vendure,review-before-adoption,review-required,connector reference,commerce API patterns
-WooCommerce REST API,https://github.com/woocommerce/woocommerce-rest-api,review-before-adoption,review-required,connector reference,commerce API patterns
+openPlan3D,https://github.com/laanlabs/openPlan3D,registered,review-required,reference,3D planning patterns
+blueprint3d-modern,https://github.com/charmlinn/blueprint3d-modern,registered,review-required,reference,2D/3D planning patterns
+3d-warehouse,https://github.com/astopaal/3d-warehouse,registered,review-required,reference,warehouse scene patterns
+WarehouseDigitalTwin,https://github.com/Alibadloo/WarehouseDigitalTwin,registered,review-required,reference,digital twin patterns
+waretwin,https://github.com/ltinphan/waretwin,registered,review-required,reference,warehouse twin patterns
+inventory-management-system,https://github.com/kerroumiFati/inventory-management-system,registered,review-required,reference,inventory UX patterns
+Inventory-POS,https://github.com/Haseebaleem/Inventory-POS,registered,review-required,reference,POS workflow patterns
+ERPNext,https://github.com/frappe/erpnext,registered,review-required,connector reference,ERP model
+Dolibarr,https://github.com/Dolibarr/dolibarr,registered,review-required,connector reference,ERP model
+Odoo,https://github.com/odoo/odoo,registered,review-required,connector reference,ERP model
+Saleor,https://github.com/saleor/saleor,registered,review-required,connector reference,commerce API patterns
+Medusa,https://github.com/medusajs/medusa,registered,review-required,connector reference,commerce API patterns
+Vendure,https://github.com/vendurehq/vendure,registered,review-required,connector reference,commerce API patterns
+WooCommerce REST API,https://github.com/woocommerce/woocommerce-rest-api,registered,review-required,connector reference,commerce API patterns
 Node-RED,https://github.com/node-red/node-red,review-before-adoption,review-required,future reference,event/integration orchestration
 PostgREST,https://github.com/PostgREST/postgrest,review-before-adoption,review-required,future reference,REST over PostgreSQL
 Hasura,https://github.com/hasura/graphql-engine,review-before-adoption,review-required,future reference,GraphQL/event patterns
@@ -39,12 +39,12 @@ OpenAI CLIP,https://github.com/openai/CLIP,review-before-adoption,review-require
 DINOv2,https://github.com/facebookresearch/dinov2,review-before-adoption,review-required,future,visual embedding reference
 GroundingDINO,https://github.com/IDEA-Research/GroundingDINO,review-before-adoption,review-required,future,open-vocabulary detection
 SAM 2,https://github.com/facebookresearch/sam2,review-before-adoption,review-required,future,segmentation
-retail-shelf-recognition,reference-required,review-before-adoption,review-required,reference,shelf recognition research
-shelfmatch,reference-required,review-before-adoption,review-required,reference,shelf matching research
+retail-shelf-recognition,reference-required,registered,review-required,reference,shelf recognition research
+shelfmatch,reference-required,registered,review-required,reference,shelf matching research
 BullMQ,https://github.com/taskforcesh/bullmq,review-before-adoption,review-required,future,background jobs
 NATS Server,https://github.com/nats-io/nats-server,review-before-adoption,review-required,future,event infrastructure
 Supabase,https://github.com/supabase/supabase,review-before-adoption,review-required,alternative foundation,PostgreSQL/auth/realtime option
 Supabase Realtime,https://github.com/supabase/realtime,review-before-adoption,review-required,alternative foundation,realtime option
 MindAR,https://github.com/hiukim/mind-ar-js,review-before-adoption,review-required,future,AR
 AR.js,https://github.com/AR-js-org/AR.js,review-before-adoption,review-required,future,WebAR
-Shopify Webhooks,https://shopify.dev/docs/api/admin-rest,review-before-adoption,review-required,connector reference,webhook contract reference
+Shopify Webhooks,https://shopify.dev/docs/api/admin-rest,registered,review-required,connector reference,webhook contract reference
